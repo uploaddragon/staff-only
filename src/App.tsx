@@ -18,6 +18,8 @@ import CategoryDetail from './pages/CategoryDetail'
 import CategorySettings from './pages/CategorySettings'
 import Register from './pages/Register'
 import ProductEdit from './pages/ProductEdit'
+import Process from './pages/Process'
+import History from './pages/History'
 
 /** 로그인한 사람만 들어오는 영역: 하단 탭이 있어요 */
 function ProtectedLayout() {
@@ -56,6 +58,8 @@ export default function App() {
           <Route path="/shelf/:categoryId/settings" element={<CategorySettings />} />
           <Route path="/shelf/:categoryId/register" element={<Register />} />
           <Route path="/shelf/:categoryId/products/:productId" element={<ProductEdit />} />
+          <Route path="/process/:productId" element={<Process />} />
+          <Route path="/history" element={<History />} />
           <Route path="/notices" element={<Notices />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/store/new" element={<CreateStore />} />

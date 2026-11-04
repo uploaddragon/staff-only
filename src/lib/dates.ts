@@ -57,6 +57,25 @@ export function ddayLabel(expiry: string, today = todaySeoul()): string {
 /** 임박일 = 유통기한 − 임박 기준일 (이 날 할인 스티커 붙이고 빼요) */
 export const warnDateOf = (expiry: string, warnDays: number) => addDays(expiry, -warnDays)
 
+/** 오늘 다음의 첫 근무일. 근무 요일이 없으면 null */
+export function nextWorkDay(today: string, workDays: number[]): string | null {
+  for (let i = 1; i <= 7; i++) {
+    const d = addDays(today, i)
+    if (workDays.includes(weekdayOf(d))) return d
+  }
+  return null
+}
+
+/**
+ * 오늘 뺄 상품인가?
+ * - 근무 요일이 있으면: 임박일이 다음 근무일보다 앞이면 포함 (근무 없는 날 임박해도 놓치지 않게)
+ * - 근무 요일이 없으면: 임박일이 오늘이거나 지났으면 포함
+ */
+export function isDueToday(expiry: string, warnDays: number, today: string, workDays: number[]): boolean {
+  const cutoff = nextWorkDay(today, workDays) ?? addDays(today, 1)
+  return warnDateOf(expiry, warnDays) < cutoff
+}
+
 /** 오늘 기준으로 이미 뺄 때가 됐나? */
 export const isImminent = (expiry: string, warnDays: number, today = todaySeoul()) =>
   warnDateOf(expiry, warnDays) <= today
