@@ -10,6 +10,9 @@ import Shelf from './pages/Shelf'
 import Notices from './pages/Notices'
 import Settings from './pages/Settings'
 import SetupNeeded from './pages/SetupNeeded'
+import CreateStore from './pages/CreateStore'
+import JoinStore from './pages/JoinStore'
+import Manage from './pages/Manage'
 
 /** 로그인한 사람만 들어오는 영역: 하단 탭이 있어요 */
 function ProtectedLayout() {
@@ -45,6 +48,9 @@ export default function App() {
           <Route path="/shelf" element={<Shelf />} />
           <Route path="/notices" element={<Notices />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/store/new" element={<CreateStore />} />
+          <Route path="/join" element={<JoinStore />} />
+          <Route path="/manage" element={<Manage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

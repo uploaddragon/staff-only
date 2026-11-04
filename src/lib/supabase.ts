@@ -14,6 +14,8 @@ export const supabase = createClient(
 
 /** Supabase 오류를 사용자에게 보여줄 한국어 문장으로 바꿔요 */
 export function toKoreanError(message: string): string {
+  // DB 함수가 직접 보낸 한국어 메시지는 그대로 보여줘요
+  if (/[가-힣]/.test(message)) return message
   const m = message.toLowerCase()
   if (m.includes('invalid login credentials')) return '이메일 또는 비밀번호가 맞지 않아요.'
   if (m.includes('user already registered')) return '이미 가입된 이메일이에요. 로그인해 주세요.'

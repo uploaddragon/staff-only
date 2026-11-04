@@ -161,3 +161,113 @@ h1, h2, h3, p { margin: 0; }
 
 .row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); }
 .muted { color: var(--color-text-sub); }
+
+/* ── 공통 조각 ─────────────────────────────── */
+.stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.section-title { font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-3); }
+.back { color: var(--color-text-sub); text-decoration: none; font-size: var(--text-md); }
+.btn-sm { height: 40px; padding: 0 var(--space-4); font-size: 15px; }
+.btn-danger { background: var(--color-surface); color: var(--color-danger); border: 1px solid var(--color-danger-soft); }
+.btn-row { display: flex; gap: var(--space-2); }
+/* 링크(<a>)를 버튼처럼 */
+.btn-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
+.btn-primary.btn-link { color: #fff; }
+/* 목록 한 줄 전체가 버튼 */
+.list-button { width: 100%; background: none; border: none; border-bottom: 1px solid var(--color-border); text-align: left; cursor: pointer; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-press);
+  vertical-align: middle;
+}
+.badge-gray { background: var(--color-border); color: var(--color-text-sub); }
+
+.list { display: flex; flex-direction: column; }
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  min-height: var(--touch);
+}
+.list-item:last-child { border-bottom: none; }
+.list-name { font-weight: 600; }
+.list-meta { font-size: var(--text-sm); color: var(--color-text-sub); margin-top: 2px; }
+
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-warn-soft);
+  color: #92400e;
+  font-weight: 600;
+  text-decoration: none;
+  min-height: var(--touch);
+}
+
+/* 큰 선택 버튼 (매장 만들기 / 입장하기) */
+.choice {
+  display: block;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-decoration: none;
+  color: inherit;
+}
+.choice-title { font-size: var(--text-lg); font-weight: 700; }
+.choice-desc { color: var(--color-text-sub); margin-top: var(--space-1); }
+.choice:active { background: var(--color-bg); }
+
+/* 근무 요일 칩 */
+.chips { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.chip {
+  height: 48px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--text-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip.on { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+/* 초대코드 6칸 */
+.code-boxes { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-2); }
+.code-box {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+.code-box.focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.code-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px; /* iOS 확대 방지 */
+  caret-color: transparent;
+}
+
+.invite-code {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
