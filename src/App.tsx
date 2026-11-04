@@ -13,6 +13,11 @@ import SetupNeeded from './pages/SetupNeeded'
 import CreateStore from './pages/CreateStore'
 import JoinStore from './pages/JoinStore'
 import Manage from './pages/Manage'
+import CategoryNew from './pages/CategoryNew'
+import CategoryDetail from './pages/CategoryDetail'
+import CategorySettings from './pages/CategorySettings'
+import Register from './pages/Register'
+import ProductEdit from './pages/ProductEdit'
 
 /** 로그인한 사람만 들어오는 영역: 하단 탭이 있어요 */
 function ProtectedLayout() {
@@ -46,6 +51,11 @@ export default function App() {
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/shelf" element={<Shelf />} />
+          <Route path="/shelf/new" element={<CategoryNew />} />
+          <Route path="/shelf/:categoryId" element={<CategoryDetail />} />
+          <Route path="/shelf/:categoryId/settings" element={<CategorySettings />} />
+          <Route path="/shelf/:categoryId/register" element={<Register />} />
+          <Route path="/shelf/:categoryId/products/:productId" element={<ProductEdit />} />
           <Route path="/notices" element={<Notices />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/store/new" element={<CreateStore />} />
