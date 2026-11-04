@@ -8,7 +8,7 @@ export default function Settings() {
       <section className="card">
         <div className="row">
           <div>
-            <p style={{ fontWeight: 600 }}>{profile?.display_name ?? '이름 없음'}</p>
+            <p style={{ fontWeight: 600, minHeight: '1.5em' }}>{profile?.display_name}</p>
             <p className="muted">{session?.user.email}</p>
           </div>
         </div>
