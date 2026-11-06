@@ -476,3 +476,24 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .product-row.expired .zone-chip { background: var(--color-danger); color: #fff; }
 .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .choice-row .check-card { padding: var(--space-4); gap: var(--space-3); }
+/* ── 5단계: 공지·점주 관리 ─────────────────────── */
+.notice-required { border: 2px solid var(--color-danger); }
+.notice-title { font-size: var(--text-xl); font-weight: 700; line-height: 1.35; }
+.notice-body { font-size: var(--text-md); line-height: 1.65; white-space: pre-wrap; }
+.notice-row { display: block; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); color: inherit; text-decoration: none; }
+.notice-row:last-child { border-bottom: none; }
+.banner-required { background: var(--color-danger-soft); color: var(--color-danger); }
+.badge-warn { background: var(--color-warn-soft); color: #92400e; }
+.list-link { color: inherit; text-decoration: none; }
+
+.tab-icon { position: relative; display: inline-flex; }
+.tab-dot {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--color-danger);
+  border: 2px solid var(--color-surface);
+}

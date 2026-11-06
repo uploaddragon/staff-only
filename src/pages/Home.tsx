@@ -5,6 +5,7 @@ import StoreSwitcher from '../components/StoreSwitcher'
 import { ddayLabel, formatShort, isImminent, nextWorkDay, todaySeoul, weekdayOf } from '../lib/dates'
 import { formatDays } from '../lib/days'
 import { supabase, toKoreanError } from '../lib/supabase'
+import { useNotices } from '../lib/useNotices'
 import { useTodayList, type DueItem } from '../lib/useTodayList'
 import { useStore, type Membership } from '../store/StoreProvider'
 
@@ -46,6 +47,9 @@ function StoreHome({ store }: { store: Membership }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { items, expired, myCategories, unassigned, error, loaded, reload } = useTodayList(store)
+  // 필독 공지: 직원이 '확인했어요'를 누를 때까지 홈에 배너로 남아요
+  const { notices } = useNotices(store.role === 'staff' ? store.store_id : undefined)
+  const unreadRequired = notices.filter((n) => n.is_required && !n.readByMe)
   const [pendingCount, setPendingCount] = useState(0)
   const [toast, setToast] = useState<ProcessedState['processed'] | null>(
     (location.state as ProcessedState | null)?.processed ?? null,
@@ -106,6 +110,12 @@ function StoreHome({ store }: { store: Membership }) {
 
   return (
     <>
+      {unreadRequired.map((n) => (
+        <Link key={n.id} className="banner banner-required" to={`/notices/${n.id}`}>
+          <span><span className="badge badge-danger">필독</span> {n.title}</span>
+          <span aria-hidden="true">확인 ›</span>
+        </Link>
+      ))}
       {pendingCount > 0 && (
         <Link className="banner" to="/manage">
           <span>입장 요청 {pendingCount}건이 있어요</span>
@@ -173,6 +183,15 @@ function StoreHome({ store }: { store: Membership }) {
         )
       )}
 
+      {isOwner && (
+        <Link className="choice" to="/manage">
+          <div className="row">
+            <p className="choice-title">매장 관리</p>
+            <span className="chevron" aria-hidden="true">›</span>
+          </div>
+          <p className="choice-desc">매대별 임박 수, 최근 처리 기록, 필독 확인 현황, 직원 관리</p>
+        </Link>
+      )}
       {!isOwner && <p className="hint center">이 매장 근무 {formatDays(store.work_days)}</p>}
     </>
   )

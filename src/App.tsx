@@ -21,6 +21,8 @@ import ProductEdit from './pages/ProductEdit'
 import Process from './pages/Process'
 import History from './pages/History'
 import RoleSetup from './pages/RoleSetup'
+import NoticeDetail from './pages/NoticeDetail'
+import NoticeEdit from './pages/NoticeEdit'
 
 /** 로그인한 사람만 들어오는 영역: 하단 탭이 있어요 */
 function ProtectedLayout() {
@@ -64,6 +66,9 @@ export default function App() {
           <Route path="/process/:productId" element={<Process />} />
           <Route path="/history" element={<History />} />
           <Route path="/notices" element={<Notices />} />
+          <Route path="/notices/new" element={<NoticeEdit />} />
+          <Route path="/notices/:noticeId" element={<NoticeDetail />} />
+          <Route path="/notices/:noticeId/edit" element={<NoticeEdit />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/store/new" element={<CreateStore />} />
           <Route path="/join" element={<JoinStore />} />

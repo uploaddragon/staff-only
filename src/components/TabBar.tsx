@@ -1,4 +1,7 @@
-import { NavLink } from 'react-router-dom'
+import { useEffect } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { useNotices } from '../lib/useNotices'
+import { useStore } from '../store/StoreProvider'
 
 const icons = {
   home: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />,
@@ -20,6 +23,17 @@ const tabs = [
 ]
 
 export default function TabBar() {
+  const location = useLocation()
+  const { active } = useStore()
+  const isStaff = active?.role === 'staff'
+  const { notices, reload } = useNotices(isStaff ? active.store_id : undefined)
+  const unread = notices.filter((n) => n.is_required && !n.readByMe).length
+
+  // 화면을 옮길 때마다 다시 세요 (공지에서 '확인했어요'를 누르면 점이 사라지게)
+  useEffect(() => {
+    if (isStaff) reload()
+  }, [location.pathname, isStaff, reload])
+
   return (
     <nav className="tabbar" aria-label="하단 메뉴">
       {tabs.map((t) => (
@@ -29,10 +43,13 @@ export default function TabBar() {
           end={t.to === '/'}
           className={({ isActive }) => `tab${isActive ? ' active' : ''}`}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {t.icon}
-          </svg>
+          <span className="tab-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {t.icon}
+            </svg>
+            {t.to === '/notices' && unread > 0 && <span className="tab-dot" aria-label={`안 읽은 필독 공지 ${unread}건`} />}
+          </span>
           {t.label}
         </NavLink>
       ))}
