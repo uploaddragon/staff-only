@@ -20,12 +20,15 @@ import Register from './pages/Register'
 import ProductEdit from './pages/ProductEdit'
 import Process from './pages/Process'
 import History from './pages/History'
+import RoleSetup from './pages/RoleSetup'
 
 /** 로그인한 사람만 들어오는 영역: 하단 탭이 있어요 */
 function ProtectedLayout() {
-  const { session, loading } = useAuth()
-  if (loading) return <div className="empty">불러오는 중…</div>
+  const { session, loading, profile, profileLoaded } = useAuth()
+  if (loading || (session && !profileLoaded)) return <div className="empty">불러오는 중…</div>
   if (!session) return <Navigate to="/login" replace />
+  // 가입 직후: 이름·점주/알바를 먼저 정해요
+  if (profile && profile.user_type === null) return <RoleSetup />
   return (
     <>
       <Outlet />

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
+import StoreSwitcher from '../components/StoreSwitcher'
 import { ddayLabel, formatShort, isImminent, nextWorkDay, todaySeoul, weekdayOf } from '../lib/dates'
 import { formatDays } from '../lib/days'
 import { supabase, toKoreanError } from '../lib/supabase'
-import { useTodayList } from '../lib/useTodayList'
+import { useTodayList, type DueItem } from '../lib/useTodayList'
 import { useStore, type Membership } from '../store/StoreProvider'
 
 /** 처리 화면에서 돌아올 때 넘겨받는 값 (되돌리기 안내용) */
@@ -22,7 +23,7 @@ const shortDay = (iso: string) => `${Number(iso.slice(5, 7))}/${Number(iso.slice
 export default function Home() {
   const { profile } = useAuth()
   const { active, loading, error } = useStore()
-  const isWorkDay = !!active?.work_days.includes(weekdayOf(todaySeoul()))
+  const isWorkDay = active?.role === 'staff' && active.work_days.includes(weekdayOf(todaySeoul()))
 
   return (
     <main className="page">
@@ -33,6 +34,7 @@ export default function Home() {
         </p>
         <h1 className="page-title">{profile ? `${profile.display_name}님, 안녕하세요` : '안녕하세요'}</h1>
       </div>
+      {active && <StoreSwitcher />}
 
       {error && <p className="alert alert-error" role="alert">{error}</p>}
       {loading ? <p className="empty">불러오는 중…</p> : active ? <StoreHome key={active.store_id} store={active} /> : <Onboarding />}
@@ -43,7 +45,7 @@ export default function Home() {
 function StoreHome({ store }: { store: Membership }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { items, myCategories, unassigned, error, loaded, reload } = useTodayList(store)
+  const { items, expired, myCategories, unassigned, error, loaded, reload } = useTodayList(store)
   const [pendingCount, setPendingCount] = useState(0)
   const [toast, setToast] = useState<ProcessedState['processed'] | null>(
     (location.state as ProcessedState | null)?.processed ?? null,
@@ -51,7 +53,7 @@ function StoreHome({ store }: { store: Membership }) {
   const [toastError, setToastError] = useState('')
   const isOwner = store.role === 'owner'
   const today = todaySeoul()
-  const next = nextWorkDay(today, store.work_days)
+  const next = isOwner ? null : nextWorkDay(today, store.work_days)
 
   // 점주에게는 입장 요청이 있으면 배너로 알려줘요
   useEffect(() => {
@@ -80,6 +82,28 @@ function StoreHome({ store }: { store: Membership }) {
     reload()
   }
 
+  const row = ({ product, category, zoneName }: DueItem, tone: 'imminent' | 'expired' | '') => (
+    <button key={product.id} className={`product-row${tone ? ` ${tone}` : ''}`}
+      onClick={() => navigate(`/process/${product.id}`)}>
+      <span className="zone-chip">{zoneName}</span>
+      <span className="product-name">
+        {product.name}
+        {(myCategories.length > 1 || product.memo) && (
+          <span className="product-sub">
+            {myCategories.length > 1 && category.name}
+            {myCategories.length > 1 && product.memo && ' · '}
+            {product.memo && `📝 ${product.memo}`}
+          </span>
+        )}
+      </span>
+      <span className="product-date">
+        <span>{formatShort(product.earliest_expiry!)}</span>
+        <span className="dday">{ddayLabel(product.earliest_expiry!, today)}</span>
+      </span>
+      <span className="chevron" aria-hidden="true">›</span>
+    </button>
+  )
+
   return (
     <>
       {pendingCount > 0 && (
@@ -104,6 +128,17 @@ function StoreHome({ store }: { store: Membership }) {
       {toastError && <p className="alert alert-error" role="alert">{toastError}</p>}
       {error && <p className="alert alert-error" role="alert">{error}</p>}
 
+      {/* 유통기한이 이미 지난 상품: 처리했는지 먼저 물어봐요 */}
+      {expired.length > 0 && (
+        <section className="card expired-card">
+          <p className="expired-title">유통기한이 지난 상품 {expired.length}개</p>
+          <p className="hint">빼뒀는지, 폐기했는지, 재고가 없는지 알려주세요.</p>
+          <div className="card-list" style={{ padding: 0, marginTop: 8 }}>
+            {expired.map((item) => row(item, 'expired'))}
+          </div>
+        </section>
+      )}
+
       <section className="card today-card">
         <div className="row">
           <div>
@@ -113,9 +148,11 @@ function StoreHome({ store }: { store: Membership }) {
           <Link className="link" to="/history">히스토리</Link>
         </div>
         <p className="hint">
-          {next
-            ? `다음 근무 ${shortDay(next)} 전에 임박하는 상품까지 미리 보여줘요`
-            : '근무 요일을 설정하면 쉬는 날 임박하는 상품도 미리 챙겨드려요'}
+          {isOwner
+            ? '오늘까지 임박한 상품이에요 (모든 매대)'
+            : next
+              ? `다음 근무 ${shortDay(next)} 전에 임박하는 상품까지 미리 보여줘요`
+              : '근무 요일을 설정하면 쉬는 날 임박하는 상품도 미리 챙겨드려요'}
           {!next && !isOwner && <> · <Link className="link" to="/settings">설정</Link></>}
         </p>
       </section>
@@ -123,24 +160,7 @@ function StoreHome({ store }: { store: Membership }) {
       {loaded && (
         items.length > 0 ? (
           <section className="card card-list">
-            {items.map(({ product, category, zoneName }) => {
-              const overdue = isImminent(product.earliest_expiry!, category.warn_days, today)
-              return (
-                <button key={product.id} className={`product-row${overdue ? ' imminent' : ''}`}
-                  onClick={() => navigate(`/process/${product.id}`)}>
-                  <span className="zone-chip">{zoneName}</span>
-                  <span className="product-name">
-                    {product.name}
-                    {myCategories.length > 1 && <span className="product-sub">{category.name}</span>}
-                  </span>
-                  <span className="product-date">
-                    <span>{formatShort(product.earliest_expiry!)}</span>
-                    <span className="dday">{ddayLabel(product.earliest_expiry!, today)}</span>
-                  </span>
-                  <span className="chevron" aria-hidden="true">›</span>
-                </button>
-              )
-            })}
+            {items.map((item) => row(item, isImminent(item.product.earliest_expiry!, item.category.warn_days, today) ? 'imminent' : ''))}
           </section>
         ) : (
           <section className="card">
@@ -153,15 +173,14 @@ function StoreHome({ store }: { store: Membership }) {
         )
       )}
 
-      {!isOwner && (
-        <p className="hint center">근무 {formatDays(store.work_days)} · {store.store_name}</p>
-      )}
+      {!isOwner && <p className="hint center">이 매장 근무 {formatDays(store.work_days)}</p>}
     </>
   )
 }
 
-/** 아직 승인된 매장이 없을 때: 대기 중/거절된 요청 + 만들기·입장 선택 */
+/** 아직 승인된 매장이 없을 때: 대기 중/거절된 요청 + 만들기·입장 (가입 유형에 맞는 쪽을 먼저) */
 function Onboarding() {
+  const { profile } = useAuth()
   const { memberships, refresh } = useStore()
   const [error, setError] = useState('')
   const pending = memberships.filter((m) => m.status === 'pending')
@@ -172,6 +191,19 @@ function Onboarding() {
     if (error) setError(toKoreanError(error.message))
     await refresh()
   }
+
+  const join = (
+    <Link key="join" className="choice" to="/join">
+      <p className="choice-title">초대코드로 입장하기</p>
+      <p className="choice-desc">점주에게 받은 6자리 코드를 입력하세요</p>
+    </Link>
+  )
+  const create = (
+    <Link key="create" className="choice" to="/store/new">
+      <p className="choice-title">매장 만들기</p>
+      <p className="choice-desc">매장을 만들고 직원에게 초대코드를 알려주세요</p>
+    </Link>
+  )
 
   return (
     <>
@@ -195,18 +227,7 @@ function Onboarding() {
         </p>
       ))}
 
-      {pending.length === 0 && (
-        <>
-          <Link className="choice" to="/join">
-            <p className="choice-title">초대코드로 입장하기</p>
-            <p className="choice-desc">알바·직원이라면 점주에게 받은 6자리 코드를 입력하세요</p>
-          </Link>
-          <Link className="choice" to="/store/new">
-            <p className="choice-title">매장 만들기</p>
-            <p className="choice-desc">점주라면 매장을 만들고 초대코드를 받으세요</p>
-          </Link>
-        </>
-      )}
+      {pending.length === 0 && (profile?.user_type === 'owner' ? [create, join] : [join, create])}
     </>
   )
 }

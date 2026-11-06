@@ -16,12 +16,16 @@ export function useTodayList(store: Membership) {
   const { session } = useAuth()
   const userId = session?.user.id
   const [items, setItems] = useState<DueItem[]>([])
+  /** 유통기한이 이미 지난 상품 (홈 맨 위에서 따로 처리 상태를 물어봐요) */
+  const [expired, setExpired] = useState<DueItem[]>([])
   const [myCategories, setMyCategories] = useState<Category[]>([])
   const [unassigned, setUnassigned] = useState<Category[]>([])
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
 
-  const { store_id: storeId, role, work_days: workDays } = store
+  const { store_id: storeId, role } = store
+  // 점주는 근무 요일 없이 "오늘까지 임박한 상품"만 봐요
+  const workDays = role === 'owner' ? [] : store.work_days
   const reload = useCallback(async () => {
     const [c, p, z] = await Promise.all([
       supabase.from('categories').select(CATEGORY_SELECT).eq('store_id', storeId),
@@ -40,15 +44,17 @@ export function useTodayList(store: Membership) {
     const today = todaySeoul()
 
     const due: DueItem[] = []
+    const past: DueItem[] = []
     for (const product of sortProducts((p.data ?? []) as Product[])) {
       const category = mine.find((x) => x.id === product.category_id)
       if (!category || !product.earliest_expiry) continue
-      if (isDueToday(product.earliest_expiry, category.warn_days, today, workDays)) {
-        due.push({ product, category, zoneName: zoneNames.get(product.zone_id) ?? '' })
-      }
+      const item = { product, category, zoneName: zoneNames.get(product.zone_id) ?? '' }
+      if (product.earliest_expiry < today) past.push(item)
+      else if (isDueToday(product.earliest_expiry, category.warn_days, today, workDays)) due.push(item)
     }
     setError('')
     setItems(due)
+    setExpired(past)
     setMyCategories(mine)
     setUnassigned(categories.filter((x) => !x.assignee_id))
     setLoaded(true)
@@ -59,5 +65,5 @@ export function useTodayList(store: Membership) {
     reload()
   }, [reload])
 
-  return { items, myCategories, unassigned, error, loaded, reload }
+  return { items, expired, myCategories, unassigned, error, loaded, reload }
 }

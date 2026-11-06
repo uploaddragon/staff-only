@@ -5,6 +5,7 @@ export type Category = {
   warn_days: number
   assignee_id: string | null
   assignee: { display_name: string } | null
+  memo: string | null
 }
 
 export type Zone = {
@@ -22,13 +23,14 @@ export type Product = {
   name: string
   earliest_expiry: string | null
   out_of_stock: boolean
+  memo: string | null
   updated_at: string
 }
 
 /** 카테고리 조회 시 담당자 이름까지 같이 가져와요 */
-export const CATEGORY_SELECT = 'id, store_id, name, warn_days, assignee_id, assignee:profiles(display_name)'
+export const CATEGORY_SELECT = 'id, store_id, name, warn_days, assignee_id, memo, assignee:profiles(display_name)'
 export const ZONE_SELECT = 'id, category_id, name, sort_order, setup_done'
-export const PRODUCT_SELECT = 'id, category_id, zone_id, name, earliest_expiry, out_of_stock, updated_at'
+export const PRODUCT_SELECT = 'id, category_id, zone_id, name, earliest_expiry, out_of_stock, memo, updated_at'
 
 /** 상품 정렬: 유통기한 빠른 순, 재고 없음은 맨 뒤 */
 export function sortProducts(list: Product[]): Product[] {

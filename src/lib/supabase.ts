@@ -9,8 +9,19 @@ export const isSupabaseConfigured = Boolean(url && anonKey)
 export const supabase = createClient(
   url ?? 'http://localhost:54321',
   anonKey ?? 'missing-anon-key',
-  { auth: { persistSession: true, autoRefreshToken: true } },
+  // pkce: 구글·카카오 로그인 후 돌아올 때 주소의 ?code= 로 세션을 받아요
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } },
 )
+
+export type OAuthProvider = 'google' | 'kakao'
+
+/** 구글·카카오 로그인 페이지로 이동해요. 처음이면 그대로 가입돼요. */
+export function signInWithProvider(provider: OAuthProvider) {
+  return supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: window.location.origin },
+  })
+}
 
 /** Supabase 오류를 사용자에게 보여줄 한국어 문장으로 바꿔요 */
 export function toKoreanError(message: string): string {

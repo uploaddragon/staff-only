@@ -3,7 +3,7 @@ import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import ExpiryInput from '../components/ExpiryInput'
 import { formatShort, parseYYMMDD } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
-import type { Product } from '../lib/types'
+import { PRODUCT_SELECT, type Product } from '../lib/types'
 import { useCategory } from '../lib/useCategory'
 
 /** ⑤ 첫 등록: 구역을 골라 "상품명 + 가장 빠른 유통기한"을 연속으로 입력해요 */
@@ -53,7 +53,7 @@ export default function Register() {
     const { data, error } = await supabase
       .from('products')
       .insert({ store_id: category.store_id, category_id: category.id, zone_id: zone.id, name: name.trim(), earliest_expiry: iso })
-      .select('id, category_id, zone_id, name, earliest_expiry, out_of_stock, updated_at')
+      .select(PRODUCT_SELECT)
       .single()
     setBusy(false)
     if (error) return setError(toKoreanError(error.message))

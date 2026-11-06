@@ -1,13 +1,17 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
-type Profile = { id: string; display_name: string }
+/** user_type: 가입 후 고른 점주/알바 (첫 화면 안내용). 아직 안 골랐으면 null */
+export type Profile = { id: string; display_name: string; user_type: 'owner' | 'staff' | null }
 
 type AuthState = {
   session: Session | null
   profile: Profile | null
+  /** 로그인했는데 프로필을 아직 못 불러왔으면 false */
+  profileLoaded: boolean
   loading: boolean
+  refreshProfile: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -16,6 +20,7 @@ const AuthContext = createContext<AuthState | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [profileFor, setProfileFor] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -28,25 +33,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const userId = session?.user.id
-  useEffect(() => {
+  const refreshProfile = useCallback(async () => {
     if (!userId) {
       setProfile(null)
+      setProfileFor(null)
       return
     }
-    supabase
+    const { data } = await supabase
       .from('profiles')
-      .select('id, display_name')
+      .select('id, display_name, user_type')
       .eq('id', userId)
       .maybeSingle()
-      .then(({ data }) => setProfile(data))
+    setProfile(data as Profile | null)
+    setProfileFor(userId)
   }, [userId])
+
+  useEffect(() => {
+    refreshProfile()
+  }, [refreshProfile])
 
   const signOut = async () => {
     await supabase.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, signOut }}>
+    <AuthContext.Provider
+      value={{ session, profile, profileLoaded: !userId || profileFor === userId, loading, refreshProfile, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )

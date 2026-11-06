@@ -16,7 +16,6 @@ export default function CategorySettings() {
   const [members, setMembers] = useState<MemberOption[]>([])
   const [name, setName] = useState('')
   const [warnDays, setWarnDays] = useState('')
-  const [newZone, setNewZone] = useState('')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState('')
 
@@ -71,15 +70,23 @@ export default function CategorySettings() {
     done('담당자를 바꿨어요', error)
   }
 
-  const addZone = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!newZone.trim()) return
+  // 안 쓰는 다음 알파벳으로 구역을 하나 더해요 (A~D가 있으면 E)
+  const nextZoneName = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
+    .find((letter) => !zones.some((z) => z.name === letter)) ?? `구역${zones.length + 1}`
+
+  const addZone = async () => {
     const { error } = await supabase.from('zones').insert({
-      store_id: active.store_id, category_id: category.id, name: newZone.trim(),
+      store_id: active.store_id, category_id: category.id, name: nextZoneName,
       sort_order: Math.max(-1, ...zones.map((z) => z.sort_order)) + 1,
     })
-    if (!error) setNewZone('')
-    done('구역을 추가했어요', error)
+    done(`${nextZoneName} 구역을 추가했어요`, error)
+  }
+
+  const renameZone = async (zone: Zone) => {
+    const next = prompt(`${zone.name} 구역의 새 이름 (10자 이내)`, zone.name)?.trim()
+    if (!next || next === zone.name) return
+    const { error } = await supabase.from('zones').update({ name: next.slice(0, 10) }).eq('id', zone.id)
+    done('구역 이름을 바꿨어요', error)
   }
 
   const deleteZone = async (zone: Zone) => {
@@ -144,15 +151,16 @@ export default function CategorySettings() {
                 <p className="list-name">{z.name}</p>
                 <p className="list-meta">상품 {productCount[z.id] ?? 0}개</p>
               </div>
-              <button className="btn btn-danger btn-sm" onClick={() => deleteZone(z)}>삭제</button>
+              <div className="btn-row">
+                <button className="btn btn-ghost btn-sm" onClick={() => renameZone(z)}>이름</button>
+                <button className="btn btn-danger btn-sm" onClick={() => deleteZone(z)}>삭제</button>
+              </div>
             </div>
           ))}
         </div>
-        <form className="btn-row" style={{ marginTop: 12 }} onSubmit={addZone}>
-          <input className="input" style={{ flex: 1, minWidth: 0 }} placeholder="새 구역 (예: E)" maxLength={10}
-            value={newZone} onChange={(e) => setNewZone(e.target.value)} />
-          <button className="btn btn-ghost">추가</button>
-        </form>
+        <button className="btn btn-ghost btn-block" style={{ marginTop: 12 }} onClick={addZone}>
+          + 구역 추가 ({nextZoneName})
+        </button>
       </section>
 
       <button className="btn btn-danger btn-block" onClick={deleteCategory}>카테고리 삭제</button>

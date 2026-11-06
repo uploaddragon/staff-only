@@ -15,6 +15,7 @@ export default function ProductEdit() {
   const [zoneId, setZoneId] = useState('')
   const [date, setDate] = useState('')
   const [outOfStock, setOutOfStock] = useState(false)
+  const [memo, setMemo] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -24,6 +25,7 @@ export default function ProductEdit() {
     setZoneId(product.zone_id)
     setDate(product.earliest_expiry ? toYYMMDD(product.earliest_expiry) : '')
     setOutOfStock(product.out_of_stock)
+    setMemo(product.memo ?? '')
   }, [product])
 
   const back = `/shelf/${categoryId}`
@@ -42,6 +44,7 @@ export default function ProductEdit() {
       zone_id: zoneId,
       out_of_stock: outOfStock,
       earliest_expiry: outOfStock ? null : iso,
+      memo: memo.trim() || null,
     }).eq('id', product.id)
     setBusy(false)
     if (error) return setError(toKoreanError(error.message))
@@ -75,6 +78,12 @@ export default function ProductEdit() {
           <span>재고 없음 (다음 입고 때 날짜 입력)</span>
         </label>
         {!outOfStock && <ExpiryInput label="가장 빠른 유통기한" value={date} onChange={setDate} onEnter={() => onSubmit()} />}
+        <label className="field">
+          <span className="label">메모 (선택)</span>
+          <textarea className="input textarea" rows={2} maxLength={200} placeholder="예: 뒤쪽 박스에 재고 더 있음"
+            value={memo} onChange={(e) => setMemo(e.target.value)} />
+          <span className="hint">처리 화면과 매대 목록에 같이 보여요</span>
+        </label>
         {error && <p className="alert alert-error" role="alert">{error}</p>}
         <button className="btn btn-primary btn-block" disabled={!valid || busy}>{busy ? '저장 중…' : '저장'}</button>
       </form>

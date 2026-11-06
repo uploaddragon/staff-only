@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ddayLabel, formatShort, isImminent, todaySeoul } from '../lib/dates'
+import { supabase, toKoreanError } from '../lib/supabase'
 import { sortProducts } from '../lib/types'
 import { useCategory } from '../lib/useCategory'
 import { useStore } from '../store/StoreProvider'
@@ -10,7 +11,7 @@ export default function CategoryDetail() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
   const { isOwner } = useStore()
-  const { category, zones, products, error, loaded, canEdit } = useCategory(categoryId)
+  const { category, zones, products, error, loaded, canEdit, reload } = useCategory(categoryId)
   const [zoneFilter, setZoneFilter] = useState<string>('all')
 
   if (!loaded) return <p className="empty">불러오는 중…</p>
@@ -37,6 +38,8 @@ export default function CategoryDetail() {
         </div>
         {isOwner && <Link className="btn btn-ghost btn-sm btn-link" to={`/shelf/${category.id}/settings`}>설정</Link>}
       </div>
+
+      <CategoryMemo categoryId={category.id} memo={category.memo} canEdit={canEdit} onSaved={reload} />
 
       {setupIncomplete && canEdit && (
         <Link className="banner banner-info" to={`/shelf/${category.id}/register`}>
@@ -68,7 +71,10 @@ export default function CategoryDetail() {
               <button key={p.id} className={`product-row${imminent ? ' imminent' : ''}${p.out_of_stock ? ' soldout' : ''}`}
                 disabled={!canEdit} onClick={() => navigate(`/shelf/${category.id}/products/${p.id}`)}>
                 <span className="zone-chip">{zoneName(p.zone_id)}</span>
-                <span className="product-name">{p.name}</span>
+                <span className="product-name">
+                  {p.name}
+                  {p.memo && <span className="product-sub">📝 {p.memo}</span>}
+                </span>
                 {p.earliest_expiry ? (
                   <span className="product-date">
                     <span>{formatShort(p.earliest_expiry)}</span>
@@ -89,5 +95,51 @@ export default function CategoryDetail() {
         </Link>
       )}
     </main>
+  )
+}
+
+/** 매대 메모: 누구나 읽고, 점주·담당자는 눌러서 고칠 수 있어요 */
+function CategoryMemo({ categoryId, memo, canEdit, onSaved }: {
+  categoryId: string
+  memo: string | null
+  canEdit: boolean
+  onSaved: () => Promise<void>
+}) {
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState(memo ?? '')
+  const [error, setError] = useState('')
+
+  if (!memo && !canEdit) return null
+
+  const save = async () => {
+    const { error } = await supabase.rpc('set_category_memo', { p_category_id: categoryId, p_memo: text })
+    if (error) return setError(toKoreanError(error.message))
+    setError('')
+    setEditing(false)
+    await onSaved()
+  }
+
+  if (editing) {
+    return (
+      <section className="card stack">
+        <label className="field">
+          <span className="label">매대 메모</span>
+          <textarea className="input textarea" rows={3} maxLength={500} autoFocus
+            placeholder="예: 신상품은 C 구역 맨 아래 칸에 진열" value={text} onChange={(e) => setText(e.target.value)} />
+        </label>
+        {error && <p className="alert alert-error" role="alert">{error}</p>}
+        <div className="btn-row">
+          <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => { setText(memo ?? ''); setEditing(false) }}>취소</button>
+          <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={save}>저장</button>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <button type="button" className="memo" disabled={!canEdit} onClick={() => setEditing(true)}>
+      <span aria-hidden="true">📝</span>
+      <span className={memo ? '' : 'muted'}>{memo ?? '매대 메모 남기기 (진열 위치, 인수인계 등)'}</span>
+    </button>
   )
 }

@@ -410,3 +410,69 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .log-row { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
 .log-row:last-child { border-bottom: none; }
 .log-change { font-size: var(--text-md); font-weight: 600; font-variant-numeric: tabular-nums; margin: 2px 0; }
+/* ── 수정사항: 소셜 로그인·매장 전환·메모·기간 지남 ─────── */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.btn-kakao, .btn-google { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
+.btn-kakao { background: #fee500; color: rgba(0, 0, 0, 0.85); }
+.btn-google { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); }
+.divider { display: flex; align-items: center; gap: var(--space-3); color: var(--color-text-sub); font-size: var(--text-sm); margin-top: var(--space-2); }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--color-border); }
+
+.store-switcher select {
+  max-width: 100%;
+  height: 40px;
+  padding: 0 36px 0 var(--space-4);
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  font-size: var(--text-md);
+  font-weight: 600;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-text-sub) 50%), linear-gradient(135deg, var(--color-text-sub) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.stepper { display: flex; align-items: center; gap: var(--space-3); }
+.stepper button {
+  width: var(--touch);
+  height: var(--touch);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  cursor: pointer;
+}
+.stepper button:disabled { opacity: 0.4; cursor: default; }
+.stepper-value { min-width: 64px; text-align: center; font-size: var(--text-xl); font-weight: 700; }
+.zone-preview { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.textarea { height: auto; padding: var(--space-3) var(--space-4); font-size: var(--text-md); line-height: 1.5; resize: vertical; }
+.memo {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface);
+  text-align: left;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+.memo:disabled { cursor: default; border-style: solid; }
+.memo-inline { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--color-warn-soft); color: #92400e; font-size: var(--text-sm); }
+
+.expired-card { border-color: var(--color-danger); border-width: 2px; }
+.expired-title { font-size: var(--text-lg); font-weight: 800; color: var(--color-danger); }
+.product-row.expired .product-name, .product-row.expired .product-date, .product-row.expired .dday { color: var(--color-danger); }
+.product-row.expired .zone-chip { background: var(--color-danger); color: #fff; }
+.choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.choice-row .check-card { padding: var(--space-4); gap: var(--space-3); }

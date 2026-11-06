@@ -4,8 +4,10 @@ import { fetchApprovedMembers, type MemberOption } from '../lib/members'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
 
-/** "A B C D", "A,B,C,D" → ['A','B','C','D'] (중복 제거) */
-const parseZones = (text: string) => [...new Set(text.split(/[\s,]+/).map((z) => z.trim()).filter(Boolean))]
+const MAX_ZONES = 12
+
+/** 4 → ['A','B','C','D'] (이름은 나중에 매대 설정에서 바꿀 수 있어요) */
+const zoneNames = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i))
 
 /** 점주: 카테고리(매대) 만들기 */
 export default function CategoryNew() {
@@ -13,7 +15,7 @@ export default function CategoryNew() {
   const { active, isOwner, loading } = useStore()
   const [name, setName] = useState('')
   const [warnDays, setWarnDays] = useState('30')
-  const [zonesText, setZonesText] = useState('A B C D')
+  const [zoneCount, setZoneCount] = useState(4)
   const [assigneeId, setAssigneeId] = useState('')
   const [members, setMembers] = useState<MemberOption[]>([])
   const [error, setError] = useState('')
@@ -27,7 +29,7 @@ export default function CategoryNew() {
   if (loading) return <p className="empty">불러오는 중…</p>
   if (!active || !isOwner) return <Navigate to="/shelf" replace />
 
-  const zones = parseZones(zonesText)
+  const zones = zoneNames(zoneCount)
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -61,11 +63,20 @@ export default function CategoryNew() {
           <input className="input" placeholder="예: 봉지라면" maxLength={30} autoFocus
             value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
-        <label className="field">
-          <span className="label">구역</span>
-          <input className="input" value={zonesText} onChange={(e) => setZonesText(e.target.value)} />
-          <span className="hint">띄어쓰기로 구분해요 · {zones.length}개: {zones.join(', ')}</span>
-        </label>
+        <div className="field">
+          <span className="label">구역 개수</span>
+          <div className="stepper">
+            <button type="button" aria-label="구역 하나 빼기" disabled={zoneCount <= 1}
+              onClick={() => setZoneCount((n) => n - 1)}>−</button>
+            <span className="stepper-value" aria-live="polite">{zoneCount}개</span>
+            <button type="button" aria-label="구역 하나 더하기" disabled={zoneCount >= MAX_ZONES}
+              onClick={() => setZoneCount((n) => n + 1)}>+</button>
+          </div>
+          <div className="zone-preview" aria-hidden="true">
+            {zones.map((z) => <span key={z} className="zone-chip">{z}</span>)}
+          </div>
+          <span className="hint">이름은 A, B, C… 순서로 만들어져요. 나중에 매대 설정에서 바꿀 수 있어요.</span>
+        </div>
         <label className="field">
           <span className="label">임박 기준 (유통기한 며칠 전에 뺄지)</span>
           <input className="input" type="number" inputMode="numeric" min={1} max={365}

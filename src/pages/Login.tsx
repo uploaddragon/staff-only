@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import SocialLogin from '../components/SocialLogin'
 import { supabase, toKoreanError } from '../lib/supabase'
 
 export default function Login() {
@@ -28,6 +29,8 @@ export default function Login() {
         <h1 className="page-title">로그인</h1>
         <p className="page-sub">매장 직원 전용 공간이에요</p>
       </div>
+
+      <SocialLogin />
 
       <form className="form" onSubmit={onSubmit}>
         <label className="field">

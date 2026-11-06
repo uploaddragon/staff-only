@@ -15,6 +15,7 @@ type Log = {
   old_expiry: string | null
   new_expiry: string | null
   out_of_stock: boolean
+  disposed: boolean
   processor: { display_name: string } | null
 }
 
@@ -33,7 +34,7 @@ export default function History() {
     if (!storeId) return
     supabase
       .from('process_logs')
-      .select('id, product_name, category_name, zone_name, processed_at, old_expiry, new_expiry, out_of_stock, processor:profiles(display_name)')
+      .select('id, product_name, category_name, zone_name, processed_at, old_expiry, new_expiry, out_of_stock, disposed, processor:profiles(display_name)')
       .eq('store_id', storeId)
       .order('processed_at', { ascending: false })
       .limit(100)
@@ -71,7 +72,9 @@ export default function History() {
             {g.logs.map((l) => (
               <div key={l.id} className="log-row">
                 <div className="row">
-                  <span className="list-name">{l.product_name}</span>
+                  <span className="list-name">
+                    {l.product_name} {l.disposed && <span className="badge badge-danger">폐기</span>}
+                  </span>
                   <span className="list-meta">{formatDateTime(l.processed_at).split(' ').at(-1)}</span>
                 </div>
                 <p className="log-change">
