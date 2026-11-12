@@ -21,6 +21,7 @@ import ProductEdit from './pages/ProductEdit'
 import Process from './pages/Process'
 import History from './pages/History'
 import RoleSetup from './pages/RoleSetup'
+import Privacy from './pages/Privacy'
 import NoticeDetail from './pages/NoticeDetail'
 import NoticeEdit from './pages/NoticeEdit'
 
@@ -53,6 +54,7 @@ export default function App() {
   return (
     <div className="app">
       <Routes>
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
         <Route path="/signup" element={<GuestOnly><Signup /></GuestOnly>} />
         <Route element={<ProtectedLayout />}>

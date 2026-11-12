@@ -78,6 +78,7 @@ export default function Settings() {
       </div>
 
       <button className="btn btn-ghost btn-block" onClick={signOut}>로그아웃</button>
+      <p className="center hint"><Link className="muted" to="/privacy">개인정보처리방침</Link></p>
     </main>
   )
 }
