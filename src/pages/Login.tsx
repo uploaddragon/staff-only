@@ -52,7 +52,11 @@ export default function Login() {
       <p className="center muted">
         처음이신가요? <Link className="link" to="/signup">회원가입</Link>
       </p>
-      <p className="center hint"><Link className="muted" to="/privacy">개인정보처리방침</Link></p>
+      <p className="center hint">
+        <Link className="muted" to="/welcome">서비스 소개</Link>
+        {' · '}
+        <Link className="muted" to="/privacy">개인정보처리방침</Link>
+      </p>
     </main>
   )
 }

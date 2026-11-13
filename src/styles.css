@@ -483,6 +483,7 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .notice-row { display: block; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); color: inherit; text-decoration: none; }
 .notice-row:last-child { border-bottom: none; }
 .banner-required { background: var(--color-danger-soft); color: var(--color-danger); }
+.banner-required .badge { background: var(--color-danger); color: #fff; }
 .badge-warn { background: var(--color-warn-soft); color: #92400e; }
 .list-link { color: inherit; text-decoration: none; }
 
@@ -501,3 +502,76 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .legal { line-height: 1.7; }
 .legal ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
 .legal .section-title { margin: 0; }
+/* ── 첫 실행 소개 ──────────────────────────────── */
+.welcome {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5) 0 calc(var(--space-6) + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+}
+.welcome-top { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--space-5); }
+.welcome-top .brand img { width: 32px; height: 32px; }
+.welcome-top .brand-name { font-size: var(--text-lg); }
+.welcome-skip { background: none; border: none; color: var(--color-text-sub); font-size: var(--text-md); padding: var(--space-2); cursor: pointer; }
+
+.welcome-track {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.welcome-track::-webkit-scrollbar { display: none; }
+.welcome-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+  gap: var(--space-3);
+}
+.welcome-art { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 300px; }
+.welcome-title { font-size: var(--text-2xl); font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; white-space: pre-line; }
+.welcome-desc { font-size: var(--text-md); color: var(--color-text-sub); line-height: 1.6; }
+
+/* 실제 화면을 작게 그린 그림 */
+.mock {
+  width: 100%;
+  max-width: 320px;
+  padding: var(--space-4);
+  border-radius: 24px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.08);
+}
+.mock .card { padding: var(--space-4); }
+.mock .card-list { padding: var(--space-1) var(--space-3); }
+.mock .product-row { min-height: 48px; cursor: default; }
+.mock .today-count { font-size: 30px; }
+.mock .code-box { height: 44px; font-size: var(--text-xl); }
+.mock-input { display: flex; align-items: center; }
+.mock-btn { display: flex; align-items: center; justify-content: center; height: 46px; font-size: var(--text-md); }
+
+.welcome-bottom { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); padding: 0 var(--space-5); }
+.welcome-dots { display: flex; gap: var(--space-2); }
+.welcome-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: width 0.2s, background 0.2s;
+}
+.welcome-dots button.on { width: 24px; background: var(--color-primary); }
+@media (prefers-reduced-motion: reduce) {
+  .welcome-dots button { transition: none; }
+}

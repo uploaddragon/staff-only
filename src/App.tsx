@@ -22,6 +22,8 @@ import Process from './pages/Process'
 import History from './pages/History'
 import RoleSetup from './pages/RoleSetup'
 import Privacy from './pages/Privacy'
+import Welcome from './pages/Welcome'
+import { hasSeenIntro } from './lib/intro'
 import NoticeDetail from './pages/NoticeDetail'
 import NoticeEdit from './pages/NoticeEdit'
 
@@ -48,6 +50,12 @@ function GuestOnly({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/** 처음 온 사람은 로그인 전에 서비스 소개부터 (화면을 그릴 때마다 다시 확인해요) */
+function IntroFirst({ children }: { children: ReactNode }) {
+  if (!hasSeenIntro()) return <Navigate to="/welcome" replace />
+  return <>{children}</>
+}
+
 export default function App() {
   if (!isSupabaseConfigured) return <div className="app"><SetupNeeded /></div>
 
@@ -55,7 +63,8 @@ export default function App() {
     <div className="app">
       <Routes>
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+        <Route path="/welcome" element={<GuestOnly><Welcome /></GuestOnly>} />
+        <Route path="/login" element={<GuestOnly><IntroFirst><Login /></IntroFirst></GuestOnly>} />
         <Route path="/signup" element={<GuestOnly><Signup /></GuestOnly>} />
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<Home />} />
