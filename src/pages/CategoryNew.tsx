@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { fetchApprovedMembers, type MemberOption } from '../lib/members'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
+import { PageLoading } from '../components/States'
 
 const MAX_ZONES = 12
 
@@ -26,7 +27,7 @@ export default function CategoryNew() {
     if (storeId) fetchApprovedMembers(storeId).then(setMembers)
   }, [storeId])
 
-  if (loading) return <p className="empty">불러오는 중…</p>
+  if (loading) return <PageLoading />
   if (!active || !isOwner) return <Navigate to="/shelf" replace />
 
   const zones = zoneNames(zoneCount)

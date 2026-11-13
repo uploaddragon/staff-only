@@ -6,6 +6,7 @@ import { supabase, toKoreanError } from '../lib/supabase'
 import { useNotices } from '../lib/useNotices'
 import { useOwnerOverview } from '../lib/useOwnerOverview'
 import { useStore } from '../store/StoreProvider'
+import { PageLoading } from '../components/States'
 
 type Member = {
   user_id: string
@@ -44,7 +45,7 @@ export default function Manage() {
   }, [load])
 
   // 매장 정보를 다 불러온 뒤에 점주인지 판단해요 (새로고침 시 튕김 방지)
-  if (loading) return <p className="empty">불러오는 중…</p>
+  if (loading) return <PageLoading />
   if (!active || !isOwner) return <Navigate to="/settings" replace />
 
   /** RPC를 부르고 목록을 다시 불러와요 */

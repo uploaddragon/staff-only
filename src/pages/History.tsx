@@ -5,6 +5,7 @@ import { formatShort } from '../lib/dates'
 import { formatDateTime } from '../lib/days'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
+import { EmptyState, Skeleton } from '../components/States'
 
 type Log = {
   id: string
@@ -62,8 +63,10 @@ export default function History() {
         <p className="page-sub">최근 100건 · 점주와 직원 모두 볼 수 있어요</p>
       </div>
       {error && <p className="alert alert-error" role="alert">{error}</p>}
-      {logs === null && !error && <p className="empty">불러오는 중…</p>}
-      {logs?.length === 0 && <section className="card"><p className="empty">아직 처리한 기록이 없어요.</p></section>}
+      {logs === null && !error && <Skeleton />}
+      {logs?.length === 0 && (
+        <EmptyState icon="history" title="아직 처리한 기록이 없어요" desc="오늘 뺄 상품을 처리하면 누가·언제·어떻게 처리했는지 여기에 남아요." />
+      )}
 
       {groups.map((g) => (
         <section key={g.day} className="stack">

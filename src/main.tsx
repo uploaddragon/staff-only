@@ -5,6 +5,8 @@ import { registerSW } from 'virtual:pwa-register'
 import { AuthProvider } from './auth/AuthProvider'
 import { StoreProvider } from './store/StoreProvider'
 import App from './App'
+// Pretendard: 필요한 글자 조각만 내려받는 방식이라 가벼워요 (한 번 받으면 service worker가 저장)
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css'
 import './styles.css'
 
 registerSW({ immediate: true })

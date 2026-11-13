@@ -6,6 +6,7 @@ import { supabase, toKoreanError } from '../lib/supabase'
 import { CATEGORY_SELECT, PRODUCT_SELECT, type Category, type Product } from '../lib/types'
 import { useStore } from '../store/StoreProvider'
 import type { ProcessedState } from './Home'
+import { Skeleton } from '../components/States'
 
 /** 무엇을 했나: 빼둠(할인 스티커) / 폐기 (폐기는 유통기한이 지난 상품에서만 골라요) */
 type Action = 'pulled' | 'disposed'
@@ -45,7 +46,7 @@ export default function Process() {
   }, [productId])
 
   if (!product || !category) {
-    return <main className="page">{error ? <p className="alert alert-error">{error}</p> : <p className="empty">불러오는 중…</p>}</main>
+    return <main className="page">{error ? <p className="alert alert-error">{error}</p> : <Skeleton />}</main>
   }
 
   const today = todaySeoul()

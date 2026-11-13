@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
+import { PageLoading } from '../components/States'
 
 /** ⑦ 공지 작성·수정 (점주): 제목, 내용, 필독 토글, 게시 */
 export default function NoticeEdit() {
@@ -25,7 +26,7 @@ export default function NoticeEdit() {
     })
   }, [noticeId])
 
-  if (loading) return <p className="empty">불러오는 중…</p>
+  if (loading) return <PageLoading />
   if (!active || !isOwner) return <Navigate to="/notices" replace />
 
   const onSubmit = async (e: FormEvent) => {

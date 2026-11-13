@@ -23,6 +23,17 @@ export default defineConfig({
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
+      workbox: {
+        // 글꼴 조각(92개)은 미리 받지 않고, 쓰일 때 받아서 저장해 둬요
+        globIgnores: ['**/*.woff2'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === 'font',
+            handler: 'CacheFirst',
+            options: { cacheName: 'fonts', expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 365 } },
+          },
+        ],
+      },
     }),
   ],
 })

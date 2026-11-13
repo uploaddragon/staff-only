@@ -5,6 +5,7 @@ import { isImminent } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { CATEGORY_SELECT, type Category } from '../lib/types'
 import { useStore } from '../store/StoreProvider'
+import { EmptyState, Skeleton } from '../components/States'
 
 type Summary = { total: number; imminent: number; zonesDone: number; zones: number }
 
@@ -61,16 +62,12 @@ export default function Shelf() {
       </div>
 
       {error && <p className="alert alert-error" role="alert">{error}</p>}
-      {categories === null && !error && <p className="empty">불러오는 중…</p>}
+      {categories === null && !error && <Skeleton />}
 
       {categories?.length === 0 && (
-        <section className="card">
-          <p className="empty">
-            아직 매대가 없어요.
-            <br />
-            {isOwner ? '오른쪽 위 "+ 카테고리"로 봉지라면 같은 매대를 만들어 주세요.' : '점주가 매대를 만들면 여기에 보여요.'}
-          </p>
-        </section>
+        <EmptyState icon="shelf" title="아직 매대가 없어요"
+          desc={isOwner ? '봉지라면처럼 관리할 매대를 만들고 구역(A·B·C·D)을 나눠 보세요.' : '점주가 매대를 만들면 여기에 보여요.'}
+          action={isOwner && <Link className="btn btn-primary btn-sm btn-link" to="/shelf/new">매대 만들기</Link>} />
       )}
 
       {categories?.map((c) => {

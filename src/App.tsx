@@ -26,11 +26,12 @@ import Welcome from './pages/Welcome'
 import { hasSeenIntro } from './lib/intro'
 import NoticeDetail from './pages/NoticeDetail'
 import NoticeEdit from './pages/NoticeEdit'
+import { PageLoading } from './components/States'
 
 /** 로그인한 사람만 들어오는 영역: 하단 탭이 있어요 */
 function ProtectedLayout() {
   const { session, loading, profile, profileLoaded } = useAuth()
-  if (loading || (session && !profileLoaded)) return <div className="empty">불러오는 중…</div>
+  if (loading || (session && !profileLoaded)) return <PageLoading />
   if (!session) return <Navigate to="/login" replace />
   // 가입 직후: 이름·점주/알바를 먼저 정해요
   if (profile && profile.user_type === null) return <RoleSetup />
@@ -45,7 +46,7 @@ function ProtectedLayout() {
 /** 이미 로그인했으면 로그인/회원가입 화면 대신 홈으로 보내요 */
 function GuestOnly({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth()
-  if (loading) return <div className="empty">불러오는 중…</div>
+  if (loading) return <PageLoading />
   if (session) return <Navigate to="/" replace />
   return <>{children}</>
 }

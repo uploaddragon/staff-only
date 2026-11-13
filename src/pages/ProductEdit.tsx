@@ -4,6 +4,7 @@ import ExpiryInput from '../components/ExpiryInput'
 import { parseYYMMDD, toYYMMDD } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { useCategory } from '../lib/useCategory'
+import { PageLoading } from '../components/States'
 
 /** 상품 정보 고치기 (잘못 입력한 이름·날짜·구역, 재고 없음) */
 export default function ProductEdit() {
@@ -29,7 +30,7 @@ export default function ProductEdit() {
   }, [product])
 
   const back = `/shelf/${categoryId}`
-  if (!loaded) return <p className="empty">불러오는 중…</p>
+  if (!loaded) return <PageLoading />
   if (!category || !canEdit || !product) return <Navigate to={back} replace />
 
   const iso = parseYYMMDD(date)

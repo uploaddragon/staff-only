@@ -4,6 +4,7 @@ import NoStore from '../components/NoStore'
 import { toKoreanError } from '../lib/supabase'
 import { markNoticeRead, noticeDate, useNotices, type NoticeView } from '../lib/useNotices'
 import { useStore } from '../store/StoreProvider'
+import { EmptyState, Skeleton } from '../components/States'
 
 /** ⑧ 공지사항: 알바는 필독 카드 + '확인했어요', 점주는 작성과 확인 현황 */
 export default function Notices() {
@@ -30,7 +31,7 @@ export default function Notices() {
       </div>
 
       {(error || actionError) && <p className="alert alert-error" role="alert">{error || actionError}</p>}
-      {!loaded && <p className="empty">불러오는 중…</p>}
+      {!loaded && <Skeleton />}
 
       {unreadRequired.map((n) => (
         <section key={n.id} className="card notice-required stack">
@@ -46,9 +47,9 @@ export default function Notices() {
       ))}
 
       {loaded && notices.length === 0 && (
-        <section className="card">
-          <p className="empty">{isOwner ? '아직 공지가 없어요. 오른쪽 위에서 작성해 주세요.' : '아직 공지가 없어요.'}</p>
-        </section>
+        <EmptyState icon="megaphone" title="아직 공지가 없어요"
+          desc={isOwner ? '필독으로 올리면 직원이 확인할 때까지 홈에 남고, 누가 봤는지 알 수 있어요.' : '점주가 공지를 올리면 여기에 보여요.'}
+          action={isOwner && <Link className="btn btn-primary btn-sm btn-link" to="/notices/new">공지 작성</Link>} />
       )}
 
       {rest.length > 0 && (

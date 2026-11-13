@@ -4,6 +4,7 @@ import { fetchApprovedMembers, type MemberOption } from '../lib/members'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { CATEGORY_SELECT, ZONE_SELECT, type Category, type Zone } from '../lib/types'
 import { useStore } from '../store/StoreProvider'
+import { PageLoading, Skeleton } from '../components/States'
 
 /** 점주: 카테고리 이름·임박 기준·담당자(인수인계)·구역 관리 */
 export default function CategorySettings() {
@@ -44,9 +45,9 @@ export default function CategorySettings() {
     load()
   }, [load])
 
-  if (loading) return <p className="empty">불러오는 중…</p>
+  if (loading) return <PageLoading />
   if (!active || !isOwner) return <Navigate to={`/shelf/${categoryId}`} replace />
-  if (!category) return <main className="page">{error ? <p className="alert alert-error">{error}</p> : <p className="empty">불러오는 중…</p>}</main>
+  if (!category) return <main className="page">{error ? <p className="alert alert-error">{error}</p> : <Skeleton />}</main>
 
   /** 저장 후 잠깐 "저장했어요"를 보여줘요 */
   const done = (msg: string, err: { message: string } | null) => {

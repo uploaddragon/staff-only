@@ -1,52 +1,64 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
+import Icon from '../components/Icon'
+import { EmptyState, SectionHeader, Skeleton } from '../components/States'
 import StoreSwitcher from '../components/StoreSwitcher'
 import { ddayLabel, formatShort, isImminent, nextWorkDay, todaySeoul, weekdayOf } from '../lib/dates'
 import { formatDays } from '../lib/days'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { useNotices } from '../lib/useNotices'
-import { useTodayList, type DueItem } from '../lib/useTodayList'
+import { useTodayList, type DueItem, type ShelfCard } from '../lib/useTodayList'
 import { useStore, type Membership } from '../store/StoreProvider'
 
 /** 처리 화면에서 돌아올 때 넘겨받는 값 (되돌리기 안내용) */
 export type ProcessedState = { processed?: { logId: string; name: string } }
 
+const WEEK = '일월화수목금토'
+
 /** "11월 4일 (수)" (서울 기준) */
 function todayLabel() {
   const today = todaySeoul()
-  return `${Number(today.slice(5, 7))}월 ${Number(today.slice(8, 10))}일 (${'일월화수목금토'[weekdayOf(today)]})`
+  return `${Number(today.slice(5, 7))}월 ${Number(today.slice(8, 10))}일 (${WEEK[weekdayOf(today)]})`
 }
 
 /** "11/5(목)" */
-const shortDay = (iso: string) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}(${'일월화수목금토'[weekdayOf(iso)]})`
+const shortDay = (iso: string) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}(${WEEK[weekdayOf(iso)]})`
 
 export default function Home() {
   const { profile } = useAuth()
   const { active, loading, error } = useStore()
-  const isWorkDay = active?.role === 'staff' && active.work_days.includes(weekdayOf(todaySeoul()))
+  const greeting = profile ? `${profile.display_name}님, 안녕하세요` : '안녕하세요'
 
-  return (
-    <main className="page">
-      <div>
-        <p className="page-sub">
-          {todayLabel()}
-          {isWorkDay && <> · <span className="badge">출근일</span></>}
-        </p>
-        <h1 className="page-title">{profile ? `${profile.display_name}님, 안녕하세요` : '안녕하세요'}</h1>
-      </div>
-      {active && <StoreSwitcher />}
+  if (loading) {
+    return (
+      <main className="page page-home">
+        <header className="hero"><p className="hero-date">{todayLabel()}</p><h1 className="hero-title">{greeting}</h1></header>
+        <Skeleton />
+      </main>
+    )
+  }
 
-      {error && <p className="alert alert-error" role="alert">{error}</p>}
-      {loading ? <p className="empty">불러오는 중…</p> : active ? <StoreHome key={active.store_id} store={active} /> : <Onboarding />}
-    </main>
-  )
+  if (!active) {
+    return (
+      <main className="page">
+        <div>
+          <p className="page-sub">{todayLabel()}</p>
+          <h1 className="page-title">{greeting}</h1>
+        </div>
+        {error && <p className="alert alert-error" role="alert">{error}</p>}
+        <Onboarding />
+      </main>
+    )
+  }
+
+  return <StoreHome key={active.store_id} store={active} greeting={greeting} />
 }
 
-function StoreHome({ store }: { store: Membership }) {
+function StoreHome({ store, greeting }: { store: Membership; greeting: string }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { items, expired, myCategories, unassigned, error, loaded, reload } = useTodayList(store)
+  const { items, expired, upcoming, shelves, processedToday, myCategories, unassigned, error, loaded, reload } = useTodayList(store)
   // 필독 공지: 직원이 '확인했어요'를 누를 때까지 홈에 배너로 남아요
   const { notices } = useNotices(store.role === 'staff' ? store.store_id : undefined)
   const unreadRequired = notices.filter((n) => n.is_required && !n.readByMe)
@@ -58,6 +70,8 @@ function StoreHome({ store }: { store: Membership }) {
   const isOwner = store.role === 'owner'
   const today = todaySeoul()
   const next = isOwner ? null : nextWorkDay(today, store.work_days)
+  const isWorkDay = !isOwner && store.work_days.includes(weekdayOf(today))
+  const remaining = items.length + expired.length
 
   // 점주에게는 입장 요청이 있으면 배너로 알려줘요
   useEffect(() => {
@@ -104,12 +118,55 @@ function StoreHome({ store }: { store: Membership }) {
         <span>{formatShort(product.earliest_expiry!)}</span>
         <span className="dday">{ddayLabel(product.earliest_expiry!, today)}</span>
       </span>
-      <span className="chevron" aria-hidden="true">›</span>
+      <Icon name="chevronRight" size={18} className="chevron-icon" />
     </button>
   )
 
+  const firstUpcoming = upcoming[0]
+
   return (
-    <>
+    <main className="page page-home">
+      {/* ── 상단 요약 ── */}
+      <header className="hero">
+        <div className="hero-top">
+          <p className="hero-date">
+            {todayLabel()}
+            {isWorkDay && <span className="hero-chip">출근일</span>}
+          </p>
+        </div>
+        <h1 className="hero-title">{greeting}</h1>
+        <StoreSwitcher variant="hero" />
+
+        <div className="hero-summary">
+          <ProgressRing done={processedToday} total={processedToday + remaining} loaded={loaded} />
+          <div className="hero-stats">
+            <Stat label="오늘 뺄 상품" value={loaded ? items.length : '–'} />
+            <Stat label="기간 지남" value={loaded ? expired.length : '–'} alert={expired.length > 0} />
+            {isOwner
+              ? <Stat label="입장 요청" value={pendingCount} alert={pendingCount > 0} />
+              : <Stat label="필독 공지" value={unreadRequired.length} alert={unreadRequired.length > 0} />}
+          </div>
+        </div>
+        <p className="hero-caption">
+          {isOwner
+            ? '모든 매대에서 오늘까지 임박한 상품이에요'
+            : next
+              ? `다음 근무 ${shortDay(next)} 전에 임박하는 상품까지 챙겼어요`
+              : <>근무 요일을 정하면 쉬는 날 임박하는 상품도 챙겨요 · <Link to="/settings">설정</Link></>}
+        </p>
+      </header>
+
+      {/* ── 알림 ── */}
+      {toast && (
+        <div className="toast toast-success" role="status">
+          <span className="toast-check" aria-hidden="true"><Icon name="check" size={18} /></span>
+          <span className="toast-text">{toast.name} 처리 완료 · 오늘 {processedToday}개째</span>
+          <button className="toast-action" onClick={undo}>되돌리기</button>
+        </div>
+      )}
+      {toastError && <p className="alert alert-error" role="alert">{toastError}</p>}
+      {error && <p className="alert alert-error" role="alert">{error}</p>}
+
       {unreadRequired.map((n) => (
         <Link key={n.id} className="banner banner-required" to={`/notices/${n.id}`}>
           <span><span className="badge badge-danger">필독</span> {n.title}</span>
@@ -129,71 +186,148 @@ function StoreHome({ store }: { store: Membership }) {
         </Link>
       )}
 
-      {toast && (
-        <div className="toast" role="status">
-          <span>{toast.name} 처리 완료</span>
-          <button className="toast-action" onClick={undo}>되돌리기</button>
+      {!loaded ? <Skeleton header={false} /> : (
+        <>
+          {/* ── 기간 지난 상품: 처리했는지 먼저 물어봐요 ── */}
+          {expired.length > 0 && (
+            <section className="card expired-card">
+              <SectionHeader icon="alert" title={`유통기한이 지난 상품 ${expired.length}개`} />
+              <p className="hint">빼뒀는지, 폐기했는지, 재고가 없는지 알려주세요.</p>
+              <div className="card-list" style={{ padding: 0, marginTop: 8 }}>
+                {expired.map((item) => row(item, 'expired'))}
+              </div>
+            </section>
+          )}
+
+          {/* ── 오늘 뺄 상품 ── */}
+          <section className="home-section">
+            <SectionHeader icon="box" title={<>오늘 뺄 상품 <span className="count">{items.length}</span></>}
+              right={<Link className="link-sub" to="/history"><Icon name="history" size={16} /> 히스토리</Link>} />
+            {items.length > 0 ? (
+              <div className="card card-list">
+                {items.map((item) => row(item, isImminent(item.product.earliest_expiry!, item.category.warn_days, today) ? 'imminent' : ''))}
+              </div>
+            ) : myCategories.length === 0 ? (
+              <EmptyState icon="shelf" title={isOwner ? '아직 매대가 없어요' : '내가 담당하는 매대가 없어요'}
+                desc={isOwner ? '봉지라면처럼 관리할 매대를 만들어 주세요.' : '점주에게 담당 지정을 요청해 주세요.'}
+                action={isOwner && <Link className="btn btn-primary btn-sm btn-link" to="/shelf/new">매대 만들기</Link>} />
+            ) : (
+              <EmptyState tone="good" icon="checkCircle"
+                title={processedToday > 0 ? `오늘 ${processedToday}개 처리 완료!` : '오늘 뺄 상품이 없어요'}
+                desc={firstUpcoming
+                  ? <>다음 빼는 날은 <b>{shortDay(firstUpcoming.date)}</b> · {firstUpcoming.items[0].product.name}{firstUpcoming.items.length > 1 ? ` 외 ${firstUpcoming.items.length - 1}개` : ''}</>
+                  : '앞으로 7일 안에 임박하는 상품도 없어요.'} />
+            )}
+          </section>
+
+          {/* ── 다가오는 임박 (7일) ── */}
+          {upcoming.length > 0 && (
+            <section className="home-section">
+              <SectionHeader icon="calendar" title="다가오는 임박" right={<span className="hint">7일 안</span>} />
+              <div className="card timeline">
+                {upcoming.map((day) => {
+                  const workday = !isOwner && store.work_days.includes(weekdayOf(day.date))
+                  return (
+                    <div key={day.date} className="timeline-day">
+                      <div className="timeline-date">
+                        <span className="timeline-dot" aria-hidden="true" />
+                        <b>{shortDay(day.date)}</b>
+                        {workday && <span className="badge">출근</span>}
+                      </div>
+                      <ul className="timeline-items">
+                        {day.items.map(({ product, zoneName }) => (
+                          <li key={product.id}>
+                            <span className="zone-chip zone-chip-sm">{zoneName}</span>
+                            <span className="timeline-name">{product.name}</span>
+                            <span className="timeline-exp">{formatShort(product.earliest_expiry!)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* ── 내 매대 ── */}
+          {shelves.length > 0 && (
+            <section className="home-section">
+              <SectionHeader icon="shelf" title={isOwner ? '매대' : '내 담당 매대'}
+                right={<Link className="link-sub" to="/shelf">전체 ›</Link>} />
+              <div className="shelf-cards">
+                {shelves.map((s) => <ShelfMini key={s.category.id} shelf={s} />)}
+              </div>
+            </section>
+          )}
+
+          {isOwner && (
+            <Link className="choice choice-row" to="/manage">
+              <span className="choice-icon"><Icon name="users" /></span>
+              <span style={{ flex: 1 }}>
+                <span className="choice-title">매장 관리</span>
+                <span className="choice-desc">임박 현황, 처리 기록, 필독 확인, 직원 관리</span>
+              </span>
+              <Icon name="chevronRight" size={18} className="chevron-icon" />
+            </Link>
+          )}
+          {!isOwner && <p className="hint center">이 매장 근무 {formatDays(store.work_days)}</p>}
+        </>
+      )}
+    </main>
+  )
+}
+
+/** 오늘 처리 진행 링: 처리한 개수 / (처리한 개수 + 남은 개수) */
+function ProgressRing({ done, total, loaded }: { done: number; total: number; loaded: boolean }) {
+  const r = 30
+  const c = 2 * Math.PI * r
+  const ratio = total === 0 ? 1 : done / total
+  const allDone = loaded && done === total
+  return (
+    <div className="ring" role="img" aria-label={loaded ? `오늘 처리 ${done}/${total}` : '불러오는 중'}>
+      <svg viewBox="0 0 72 72" width="76" height="76">
+        <circle cx="36" cy="36" r={r} className="ring-track" />
+        <circle cx="36" cy="36" r={r} className="ring-bar" strokeDasharray={c}
+          strokeDashoffset={loaded ? c * (1 - ratio) : c} transform="rotate(-90 36 36)" />
+      </svg>
+      <span className="ring-label">
+        {!loaded ? '' : allDone ? <Icon name="check" size={26} /> : <><b>{done}</b>/{total}</>}
+      </span>
+      <span className="ring-caption">오늘 처리</span>
+    </div>
+  )
+}
+
+function Stat({ label, value, alert }: { label: string; value: number | string; alert?: boolean }) {
+  return (
+    <div className={`stat${alert ? ' stat-alert' : ''}`}>
+      <span className="stat-value">{value}</span>
+      <span className="stat-label">{label}</span>
+    </div>
+  )
+}
+
+/** 매대 한눈에 보기 카드 */
+function ShelfMini({ shelf }: { shelf: ShelfCard }) {
+  const { category, inStock, outOfStock, imminent, zonesDone, zones } = shelf
+  const setup = zones > 0 && zonesDone < zones
+  return (
+    <Link className="shelf-mini" to={`/shelf/${category.id}`}>
+      <div className="row">
+        <span className="shelf-mini-name">{category.name}</span>
+        {imminent > 0 && <span className="badge badge-danger">임박 {imminent}</span>}
+      </div>
+      <p className="shelf-mini-meta">
+        상품 {inStock}개{outOfStock > 0 && ` · 재고 없음 ${outOfStock}`} · 기준 {category.warn_days}일
+      </p>
+      {setup && (
+        <div className="shelf-mini-setup">
+          <div className="progress"><div style={{ width: `${(zonesDone / zones) * 100}%` }} /></div>
+          <span>첫 등록 {zonesDone}/{zones}</span>
         </div>
       )}
-      {toastError && <p className="alert alert-error" role="alert">{toastError}</p>}
-      {error && <p className="alert alert-error" role="alert">{error}</p>}
-
-      {/* 유통기한이 이미 지난 상품: 처리했는지 먼저 물어봐요 */}
-      {expired.length > 0 && (
-        <section className="card expired-card">
-          <p className="expired-title">유통기한이 지난 상품 {expired.length}개</p>
-          <p className="hint">빼뒀는지, 폐기했는지, 재고가 없는지 알려주세요.</p>
-          <div className="card-list" style={{ padding: 0, marginTop: 8 }}>
-            {expired.map((item) => row(item, 'expired'))}
-          </div>
-        </section>
-      )}
-
-      <section className="card today-card">
-        <div className="row">
-          <div>
-            <p className="label">오늘 뺄 상품</p>
-            <p className="today-count">{loaded ? `${items.length}개` : '…'}</p>
-          </div>
-          <Link className="link" to="/history">히스토리</Link>
-        </div>
-        <p className="hint">
-          {isOwner
-            ? '오늘까지 임박한 상품이에요 (모든 매대)'
-            : next
-              ? `다음 근무 ${shortDay(next)} 전에 임박하는 상품까지 미리 보여줘요`
-              : '근무 요일을 설정하면 쉬는 날 임박하는 상품도 미리 챙겨드려요'}
-          {!next && !isOwner && <> · <Link className="link" to="/settings">설정</Link></>}
-        </p>
-      </section>
-
-      {loaded && (
-        items.length > 0 ? (
-          <section className="card card-list">
-            {items.map((item) => row(item, isImminent(item.product.earliest_expiry!, item.category.warn_days, today) ? 'imminent' : ''))}
-          </section>
-        ) : (
-          <section className="card">
-            <p className="empty">
-              {myCategories.length === 0
-                ? isOwner ? '아직 매대가 없어요. 매대 탭에서 만들어 주세요.' : '내가 담당하는 매대가 없어요. 점주에게 담당 지정을 요청해 주세요.'
-                : '오늘 뺄 상품이 없어요 👍'}
-            </p>
-          </section>
-        )
-      )}
-
-      {isOwner && (
-        <Link className="choice" to="/manage">
-          <div className="row">
-            <p className="choice-title">매장 관리</p>
-            <span className="chevron" aria-hidden="true">›</span>
-          </div>
-          <p className="choice-desc">매대별 임박 수, 최근 처리 기록, 필독 확인 현황, 직원 관리</p>
-        </Link>
-      )}
-      {!isOwner && <p className="hint center">이 매장 근무 {formatDays(store.work_days)}</p>}
-    </>
+    </Link>
   )
 }
 
@@ -212,15 +346,23 @@ function Onboarding() {
   }
 
   const join = (
-    <Link key="join" className="choice" to="/join">
-      <p className="choice-title">초대코드로 입장하기</p>
-      <p className="choice-desc">점주에게 받은 6자리 코드를 입력하세요</p>
+    <Link key="join" className="choice choice-row" to="/join">
+      <span className="choice-icon"><Icon name="store" /></span>
+      <span style={{ flex: 1 }}>
+        <span className="choice-title">초대코드로 입장하기</span>
+        <span className="choice-desc">점주에게 받은 6자리 코드를 입력하세요</span>
+      </span>
+      <Icon name="chevronRight" size={18} className="chevron-icon" />
     </Link>
   )
   const create = (
-    <Link key="create" className="choice" to="/store/new">
-      <p className="choice-title">매장 만들기</p>
-      <p className="choice-desc">매장을 만들고 직원에게 초대코드를 알려주세요</p>
+    <Link key="create" className="choice choice-row" to="/store/new">
+      <span className="choice-icon"><Icon name="sparkle" /></span>
+      <span style={{ flex: 1 }}>
+        <span className="choice-title">매장 만들기</span>
+        <span className="choice-desc">매장을 만들고 직원에게 초대코드를 알려주세요</span>
+      </span>
+      <Icon name="chevronRight" size={18} className="chevron-icon" />
     </Link>
   )
 
@@ -246,7 +388,12 @@ function Onboarding() {
         </p>
       ))}
 
-      {pending.length === 0 && (profile?.user_type === 'owner' ? [create, join] : [join, create])}
+      {pending.length === 0 && (
+        <>
+          <EmptyState icon="store" title="아직 들어간 매장이 없어요" desc="매장에 들어가면 오늘 뺄 상품과 공지를 여기서 볼 수 있어요." />
+          {profile?.user_type === 'owner' ? [create, join] : [join, create]}
+        </>
+      )}
     </>
   )
 }

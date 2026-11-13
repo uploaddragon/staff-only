@@ -5,6 +5,7 @@ import { formatShort, parseYYMMDD } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { PRODUCT_SELECT, type Product } from '../lib/types'
 import { useCategory } from '../lib/useCategory'
+import { PageLoading } from '../components/States'
 
 /** ⑤ 첫 등록: 구역을 골라 "상품명 + 가장 빠른 유통기한"을 연속으로 입력해요 */
 export default function Register() {
@@ -18,7 +19,7 @@ export default function Register() {
   const nameRef = useRef<HTMLInputElement>(null)
   const dateRef = useRef<HTMLInputElement>(null)
 
-  if (!loaded) return <p className="empty">불러오는 중…</p>
+  if (!loaded) return <PageLoading />
   if (!category || !canEdit) return <Navigate to={`/shelf/${categoryId}`} replace />
 
   // 구역: 주소의 ?zone= 값 → 아직 안 끝난 첫 구역 → 첫 구역

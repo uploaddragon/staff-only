@@ -5,6 +5,7 @@ import { supabase, toKoreanError } from '../lib/supabase'
 import { sortProducts } from '../lib/types'
 import { useCategory } from '../lib/useCategory'
 import { useStore } from '../store/StoreProvider'
+import { PageLoading } from '../components/States'
 
 /** ② 매대 상세: 구역 탭, 유통기한 빠른 순 목록, 임박 강조 */
 export default function CategoryDetail() {
@@ -14,7 +15,7 @@ export default function CategoryDetail() {
   const { category, zones, products, error, loaded, canEdit, reload } = useCategory(categoryId)
   const [zoneFilter, setZoneFilter] = useState<string>('all')
 
-  if (!loaded) return <p className="empty">불러오는 중…</p>
+  if (!loaded) return <PageLoading />
   if (!category) return <main className="page"><p className="alert alert-error">{error}</p></main>
 
   const today = todaySeoul()

@@ -6,6 +6,7 @@ import { supabase, toKoreanError } from '../lib/supabase'
 import { markNoticeRead, NOTICE_SELECT, noticeDate, type Notice } from '../lib/useNotices'
 import { useAuth } from '../auth/AuthProvider'
 import { useStore } from '../store/StoreProvider'
+import { Skeleton } from '../components/States'
 
 /** 공지 상세: 알바는 '확인했어요', 점주는 확인한 사람·안 한 사람 */
 export default function NoticeDetail() {
@@ -31,7 +32,7 @@ export default function NoticeDetail() {
   }, [load])
 
   if (!notice) {
-    return <main className="page">{error ? <p className="alert alert-error">{error}</p> : <p className="empty">불러오는 중…</p>}</main>
+    return <main className="page">{error ? <p className="alert alert-error">{error}</p> : <Skeleton />}</main>
   }
 
   const readByMe = notice.notice_reads.some((r) => r.user_id === session?.user.id)
