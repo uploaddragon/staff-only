@@ -1,17 +1,27 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { WEEK_DAYS } from '../lib/days'
-import { supabase, toKoreanError } from '../lib/supabase'
+import { linkProvider, supabase, toKoreanError, type OAuthProvider } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
 
-const PROVIDER_LABEL: Record<string, string> = { email: '이메일', google: '구글', kakao: '카카오' }
+const PROVIDER_LABEL: Record<string, string> = { email: '이메일', google: '구글', kakao: '카카오', guest: '게스트' }
 
 export default function Settings() {
   const { session, profile, refreshProfile, signOut } = useAuth()
   const { memberships, active, isOwner, refresh, selectStore } = useStore()
   const approved = memberships.filter((m) => m.status === 'approved')
-  const provider = String(session?.user.app_metadata.provider ?? 'email')
+  const isGuest = !!session?.user.is_anonymous
+  // 게스트였다가 방금 연결한 경우 완료 안내를 남겨요 (연결 카드는 바로 사라지니까)
+  const [wasGuest] = useState(isGuest)
+  const justLinked = wasGuest && !isGuest
+  const provider = isGuest ? 'guest' : String(session?.user.app_metadata.provider ?? 'email')
+
+  // 게스트가 로그아웃하면 같은 계정으로 다시 들어올 방법이 없어서 한 번 더 물어봐요
+  const onSignOut = () => {
+    if (isGuest && !confirm('게스트로 로그아웃하면 지금 쓰던 매장·기록에 다시 들어올 수 없어요. 계정을 연결하지 않고 로그아웃할까요?')) return
+    signOut()
+  }
 
   const changeUserType = async (userType: 'owner' | 'staff') => {
     if (!profile || profile.user_type === userType) return
@@ -27,9 +37,11 @@ export default function Settings() {
         <div>
           <p style={{ fontWeight: 600, minHeight: '1.5em' }}>{profile?.display_name}</p>
           <p className="muted">
-            {PROVIDER_LABEL[provider] ?? provider} 로그인{session?.user.email ? ` · ${session.user.email}` : ''}
+            {isGuest ? '게스트로 사용 중' : `${PROVIDER_LABEL[provider] ?? provider} 로그인`}
+            {session?.user.email ? ` · ${session.user.email}` : ''}
           </p>
         </div>
+        <NameEdit />
         <div className="field">
           <span className="label">가입 유형 (첫 화면 안내용)</span>
           <div className="btn-row">
@@ -43,6 +55,13 @@ export default function Settings() {
           </div>
         </div>
       </section>
+
+      {isGuest && <GuestUpgrade />}
+      {justLinked && (
+        <p className="alert alert-info" role="status">
+          계정을 연결했어요. 이제 다른 폰에서도 이 계정으로 로그인하면 같은 매장·기록을 볼 수 있어요.
+        </p>
+      )}
 
       {active && (
         <section className="card stack">
@@ -77,7 +96,7 @@ export default function Settings() {
         <Link className="btn btn-ghost btn-link" style={{ flex: 1, fontSize: 'var(--text-md)' }} to="/store/new">새 매장 만들기</Link>
       </div>
 
-      <button className="btn btn-ghost btn-block" onClick={signOut}>로그아웃</button>
+      <button className="btn btn-ghost btn-block" onClick={onSignOut}>로그아웃</button>
       <p className="center hint"><Link className="muted" to="/privacy">개인정보처리방침</Link></p>
     </main>
   )
@@ -117,5 +136,113 @@ function WorkDays({ storeId, initial, onSaved }: { storeId: string; initial: num
       </div>
       {error && <p className="alert alert-error" role="alert">{error}</p>}
     </div>
+  )
+}
+
+/** 이름 바꾸기 (매장에서 보일 이름) */
+function NameEdit() {
+  const { profile, refreshProfile } = useAuth()
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState('')
+  const [error, setError] = useState('')
+
+  if (!profile) return null
+  if (!editing) {
+    return (
+      <button type="button" className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }}
+        onClick={() => { setName(profile.display_name); setEditing(true) }}>
+        이름 바꾸기
+      </button>
+    )
+  }
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault()
+    const { error } = await supabase.from('profiles').update({ display_name: name.trim() }).eq('id', profile.id)
+    if (error) return setError(toKoreanError(error.message))
+    await refreshProfile()
+    setEditing(false)
+  }
+
+  return (
+    <form className="stack" onSubmit={save}>
+      <input className="input" maxLength={20} autoFocus value={name} onChange={(e) => setName(e.target.value)} required />
+      {error && <p className="alert alert-error" role="alert">{error}</p>}
+      <div className="btn-row">
+        <button type="button" className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => setEditing(false)}>취소</button>
+        <button className="btn btn-primary btn-sm" style={{ flex: 1 }} disabled={!name.trim()}>저장</button>
+      </div>
+    </form>
+  )
+}
+
+/**
+ * 게스트 → 정식 계정: 구글·카카오를 연결하거나 이메일·비밀번호를 정해요.
+ * 같은 계정이 유지돼서 매장·기록이 그대로 이어져요.
+ */
+function GuestUpgrade() {
+  const { refreshProfile } = useAuth()
+  const [mode, setMode] = useState<'buttons' | 'email'>('buttons')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const link = async (provider: OAuthProvider) => {
+    setError('')
+    const { error } = await linkProvider(provider)
+    // 성공하면 구글·카카오로 이동했다가 설정 화면으로 돌아와요
+    if (error) setError(toKoreanError(error.message))
+  }
+
+  const linkEmail = async (e: FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
+    const { data, error } = await supabase.auth.updateUser({ email: email.trim(), password })
+    setBusy(false)
+    if (error) return setError(toKoreanError(error.message))
+    await refreshProfile()
+    setInfo(data.user?.is_anonymous
+      ? '인증 메일을 보냈어요. 메일의 링크를 누르면 연결이 끝나요.'
+      : '이메일 계정으로 연결했어요. 이제 이 이메일과 비밀번호로 로그인할 수 있어요.')
+  }
+
+  return (
+    <section className="card stack guest-card">
+      <div>
+        <p className="list-name">계정을 연결해 주세요</p>
+        <p className="hint">지금은 게스트라 이 기기에서만 쓸 수 있어요. 연결하면 다른 폰에서도 같은 매장·기록으로 이어서 써요.</p>
+      </div>
+      {info ? (
+        <p className="alert alert-info" role="status">{info}</p>
+      ) : mode === 'buttons' ? (
+        <div className="stack">
+          <button type="button" className="btn btn-block btn-kakao" onClick={() => link('kakao')}>카카오 계정 연결</button>
+          <button type="button" className="btn btn-block btn-google" onClick={() => link('google')}>구글 계정 연결</button>
+          <button type="button" className="btn btn-block btn-ghost" onClick={() => setMode('email')}>이메일로 연결</button>
+        </div>
+      ) : (
+        <form className="form" onSubmit={linkEmail}>
+          <label className="field">
+            <span className="label">이메일</span>
+            <input className="input" type="email" inputMode="email" autoComplete="email" value={email}
+              onChange={(e) => setEmail(e.target.value)} required />
+          </label>
+          <label className="field">
+            <span className="label">비밀번호</span>
+            <input className="input" type="password" autoComplete="new-password" minLength={6} value={password}
+              onChange={(e) => setPassword(e.target.value)} required />
+            <span className="hint">6자 이상</span>
+          </label>
+          <div className="btn-row">
+            <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setMode('buttons')}>뒤로</button>
+            <button className="btn btn-primary" style={{ flex: 1 }} disabled={busy}>{busy ? '연결 중…' : '연결'}</button>
+          </div>
+        </form>
+      )}
+      {error && <p className="alert alert-error" role="alert">{error}</p>}
+    </section>
   )
 }

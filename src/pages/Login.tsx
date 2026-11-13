@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import GuestStart from '../components/GuestStart'
 import SocialLogin from '../components/SocialLogin'
 import { supabase, toKoreanError } from '../lib/supabase'
 
@@ -52,6 +53,7 @@ export default function Login() {
       <p className="center muted">
         처음이신가요? <Link className="link" to="/signup">회원가입</Link>
       </p>
+      <GuestStart />
       <p className="center hint">
         <Link className="muted" to="/welcome">서비스 소개</Link>
         {' · '}

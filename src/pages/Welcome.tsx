@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import GuestStart from '../components/GuestStart'
 import { markIntroSeen } from '../lib/intro'
 
 type Slide = { title: string; desc: string; mock: ReactNode }
@@ -146,6 +147,7 @@ export default function Welcome() {
           <div className="stack" style={{ width: '100%' }}>
             <button className="btn btn-primary btn-block" onClick={() => finish('/signup')}>시작하기</button>
             <button className="btn btn-ghost btn-block" onClick={() => finish('/login')}>이미 계정이 있어요</button>
+            <GuestStart onBeforeStart={markIntroSeen} />
           </div>
         ) : (
           <button className="btn btn-primary btn-block" onClick={() => goTo(index + 1)}>다음</button>

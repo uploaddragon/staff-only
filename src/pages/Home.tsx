@@ -47,6 +47,7 @@ export default function Home() {
           <h1 className="page-title">{greeting}</h1>
         </div>
         {error && <p className="alert alert-error" role="alert">{error}</p>}
+        <GuestBanner />
         <Onboarding />
       </main>
     )
@@ -167,6 +168,7 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
       {toastError && <p className="alert alert-error" role="alert">{toastError}</p>}
       {error && <p className="alert alert-error" role="alert">{error}</p>}
 
+      <GuestBanner />
       {unreadRequired.map((n) => (
         <Link key={n.id} className="banner banner-required" to={`/notices/${n.id}`}>
           <span><span className="badge badge-danger">필독</span> {n.title}</span>
@@ -275,6 +277,18 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
         </>
       )}
     </main>
+  )
+}
+
+/** 게스트에게: 계정을 연결해야 다른 기기에서도 이어서 쓸 수 있어요 */
+function GuestBanner() {
+  const { session } = useAuth()
+  if (!session?.user.is_anonymous) return null
+  return (
+    <Link className="banner banner-guest" to="/settings">
+      <span>게스트로 사용 중 · 계정을 연결하면 다른 폰에서도 이어서 써요</span>
+      <span aria-hidden="true">연결 ›</span>
+    </Link>
   )
 }
 
