@@ -30,7 +30,7 @@ export default function Signup() {
   return (
     <main className="auth">
       <div className="brand">
-        <img src="/icon.svg" alt="" />
+        <img src="/brand/logo.svg" alt="" />
         <span className="brand-name">스태프온리</span>
       </div>
       <div>

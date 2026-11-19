@@ -5,9 +5,14 @@
   --color-text: #111827;
   --color-text-sub: #6b7280;
   --color-border: #e5e7eb;
-  --color-primary: #16a34a;
-  --color-primary-press: #15803d;
-  --color-primary-soft: #dcfce7;
+  /* 브랜드: 검정(주요 동작) + 라임(강조·선택). 라임은 흰 바탕 글자색으로 쓰지 않아요 */
+  --color-primary: #111111;
+  --color-primary-press: #000000;
+  --color-primary-soft: #f2ffd4;
+  --color-accent: #c6ff3d;
+  --color-accent-press: #b5ef29;
+  --color-focus: rgba(198, 255, 61, 0.75);
+  --color-ok: #4d7c0f;
   --color-danger: #dc2626;
   --color-danger-soft: #fee2e2;
   --color-warn: #d97706;
@@ -36,8 +41,8 @@
   --max-w: 480px;
 
   --shadow-card: 0 1px 2px rgba(17, 24, 39, 0.04), 0 4px 12px rgba(17, 24, 39, 0.04);
-  --color-hero: #15803d;
-  --color-hero-deep: #166534;
+  --color-hero: #1a1a1a;
+  --color-hero-deep: #0a0a0a;
 
   font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
@@ -135,7 +140,7 @@ h1, h2, h3, p { margin: 0; }
   font-size: var(--text-lg);
   outline: none;
 }
-.input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-focus); }
 .hint { font-size: var(--text-sm); color: var(--color-text-sub); }
 
 .btn {
@@ -153,7 +158,7 @@ h1, h2, h3, p { margin: 0; }
 .btn-ghost { background: var(--color-surface); border: 1px solid var(--color-border); }
 .btn-block { width: 100%; }
 
-.link { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+.link { color: var(--color-primary); font-weight: 700; text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 3px; text-underline-offset: 3px; }
 .center { text-align: center; }
 
 .alert {
@@ -260,7 +265,7 @@ h1, h2, h3, p { margin: 0; }
   font-size: var(--text-2xl);
   font-weight: 700;
 }
-.code-box.focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.code-box.focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-focus); }
 .code-input {
   position: absolute;
   inset: 0;
@@ -285,7 +290,7 @@ h1, h2, h3, p { margin: 0; }
 .banner-info { background: var(--color-primary-soft); color: var(--color-primary-press); }
 .hint-error { color: var(--color-danger); font-weight: 600; }
 .hint-warn { color: var(--color-warn); font-weight: 600; }
-.hint-ok { color: var(--color-primary-press); font-weight: 600; }
+.hint-ok { color: var(--color-ok); font-weight: 600; }
 select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--color-text-sub) 50%), linear-gradient(135deg, var(--color-text-sub) 50%, transparent 50%); background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
 .input-date { font-size: var(--text-2xl); font-weight: 700; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
 
@@ -355,7 +360,7 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .sticky-action {
   position: sticky;
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--space-3));
-  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
+  box-shadow: 0 6px 16px rgba(17, 17, 17, 0.25);
 }
 /* ── 4단계: 오늘 뺄 상품·처리·히스토리 ─────────── */
 .today-card { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -375,7 +380,7 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
   font-weight: 600;
   min-height: var(--touch);
 }
-.toast-action { background: none; border: none; color: #86efac; font-weight: 700; font-size: var(--text-md); padding: var(--space-2); cursor: pointer; }
+.toast-action { background: none; border: none; color: var(--color-accent); font-weight: 700; font-size: var(--text-md); padding: var(--space-2); cursor: pointer; }
 
 .record { display: flex; justify-content: space-between; align-items: flex-end; padding-top: var(--space-2); border-top: 1px solid var(--color-border); }
 .record-date { font-size: var(--text-xl); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -692,8 +697,8 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--color-bg); color: var(--color-text-sub);
 }
-.empty-good { border-style: solid; border-color: var(--color-primary-soft); background: linear-gradient(180deg, #f0fdf4, var(--color-surface)); }
-.empty-good .empty-icon { background: var(--color-primary-soft); color: var(--color-primary-press); }
+.empty-good { border-style: solid; border-color: #e3f7b0; background: linear-gradient(180deg, var(--color-primary-soft), var(--color-surface)); }
+.empty-good .empty-icon { background: var(--color-accent); color: var(--color-primary); }
 .empty-title { font-size: var(--text-lg); font-weight: 700; }
 .empty-desc { font-size: var(--text-sm); color: var(--color-text-sub); line-height: 1.6; }
 .empty-state .btn { margin-top: var(--space-2); }
@@ -775,3 +780,35 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
   font-weight: 700;
 }
 @media (prefers-reduced-motion: reduce) { .welcome { transition: none; } }
+/* ── 브랜드 색 적용 (검정 + 라임) ─────────────────── */
+/* 홈 상단: 검정 바탕에 라임 빛 */
+.hero {
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgba(198, 255, 61, 0.22), transparent 60%),
+    linear-gradient(160deg, var(--color-hero) 0%, var(--color-hero-deep) 100%);
+}
+.hero-chip { background: var(--color-accent); color: var(--color-primary); }
+.hero-summary { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.1); }
+.ring-track { stroke: rgba(255, 255, 255, 0.14); }
+.ring-bar { stroke: var(--color-accent); }
+.ring-label svg { color: var(--color-accent); }
+.stat-alert .stat-value { color: var(--color-accent); }
+.hero-caption a { color: var(--color-accent); }
+
+/* 처리 완료 체크 */
+.toast-check { background: var(--color-accent); color: var(--color-primary); }
+
+/* 하단 탭: 현재 탭 아이콘 뒤에 라임 알약 */
+.tab.active { color: var(--color-primary); font-weight: 700; }
+.tab .tab-icon { padding: 3px 16px; border-radius: 999px; transition: background-color 0.2s; }
+.tab.active .tab-icon { background: var(--color-accent); }
+
+/* 섹션 아이콘·선택 카드 */
+.section-header h2 svg { color: var(--color-primary); }
+.check-card.on { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.choice-icon { background: var(--color-accent); color: var(--color-primary); }
+.badge { color: #3f4f0c; }
+.alert-info, .banner-info { color: #3f4f0c; }
+
+@media (prefers-reduced-motion: reduce) { .tab .tab-icon { transition: none; } }
+.tab .tab-dot { top: 0; right: 10px; }

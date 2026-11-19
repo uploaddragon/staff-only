@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['brand/logo.svg', 'brand/logo-inverse.svg', 'apple-touch-icon.png'],
       manifest: {
         name: '스태프온리',
         short_name: '스태프온리',
@@ -15,12 +15,13 @@ export default defineConfig({
         lang: 'ko',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#16a34a',
+        // 브랜드: 검정 + 라임 (앱을 켤 때 검정 바탕에 로고가 떠요)
+        background_color: '#111111',
+        theme_color: '#111111',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
