@@ -90,24 +90,17 @@ const SLIDES: Slide[] = [
   },
 ]
 
-/** 첫 장: 로고와 함께 스태프온리가 어떤 앱인지 (브랜드 색: 검정 + 라임) */
+/** 첫 장: 앱 아이콘과 함께 스태프온리가 어떤 앱인지 */
 function IntroSlide() {
   return (
     <section className="welcome-slide welcome-intro" aria-roledescription="slide" aria-label={`1 / ${SLIDES.length + 1}`}>
-      <img className="intro-logo" src="/brand/logo-inverse.svg" alt="스태프온리 로고" />
+      <img className="intro-app-icon" src="/icon-512.png" alt="스태프온리 앱 아이콘" />
       <p className="intro-eyebrow">STAFF ONLY</p>
       <h1 className="intro-title">스태프온리</h1>
-      <p className="intro-tagline">매장 직원만을 위한<br />유통기한 · 필독 공지 앱</p>
       <p className="intro-desc">
         메모장에 적던 유통기한, 단톡방에 묻히던 공지.<br />
         점주와 알바가 한 곳에서 같이 챙겨요.
       </p>
-      <ul className="intro-points">
-        <li>오늘 뺄 상품</li>
-        <li>15초 처리</li>
-        <li>필독 공지</li>
-        <li>인수인계</li>
-      </ul>
     </section>
   )
 }
@@ -119,7 +112,7 @@ export default function Welcome() {
   const [index, setIndex] = useState(0)
   const total = SLIDES.length + 1
   const last = index === total - 1
-  const dark = index === 0
+  const first = index === 0
 
   const goTo = (i: number) => {
     const track = trackRef.current
@@ -133,9 +126,10 @@ export default function Welcome() {
   }
 
   return (
-    <main className={`welcome${dark ? ' welcome-dark' : ''}`}>
+    <main className="welcome">
       <div className="welcome-top">
-        <div className="brand" style={{ visibility: dark ? 'hidden' : 'visible' }}>
+        {/* 첫 장은 가운데 큰 아이콘이 있으니 위쪽 작은 로고는 숨겨요 */}
+        <div className="brand" style={{ visibility: first ? 'hidden' : 'visible' }}>
           <img src="/brand/logo.svg" alt="" />
           <span className="brand-name">스태프온리</span>
         </div>
@@ -175,8 +169,8 @@ export default function Welcome() {
             <GuestStart onBeforeStart={markIntroSeen} />
           </div>
         ) : (
-          <button className={`btn btn-block ${dark ? 'btn-lime' : 'btn-primary'}`} onClick={() => goTo(index + 1)}>
-            {dark ? '어떤 앱인지 보기' : '다음'}
+          <button className="btn btn-block btn-primary" onClick={() => goTo(index + 1)}>
+            {first ? '어떤 앱인지 보기' : '다음'}
           </button>
         )}
       </div>
