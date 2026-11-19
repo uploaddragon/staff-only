@@ -90,12 +90,36 @@ const SLIDES: Slide[] = [
   },
 ]
 
-/** 첫 실행 소개: 4장, 옆으로 넘기거나 버튼으로 이동 */
+/** 첫 장: 로고와 함께 스태프온리가 어떤 앱인지 (브랜드 색: 검정 + 라임) */
+function IntroSlide() {
+  return (
+    <section className="welcome-slide welcome-intro" aria-roledescription="slide" aria-label={`1 / ${SLIDES.length + 1}`}>
+      <img className="intro-logo" src="/brand/logo-inverse.svg" alt="스태프온리 로고" />
+      <p className="intro-eyebrow">STAFF ONLY</p>
+      <h1 className="intro-title">스태프온리</h1>
+      <p className="intro-tagline">매장 직원만을 위한<br />유통기한 · 필독 공지 앱</p>
+      <p className="intro-desc">
+        메모장에 적던 유통기한, 단톡방에 묻히던 공지.<br />
+        점주와 알바가 한 곳에서 같이 챙겨요.
+      </p>
+      <ul className="intro-points">
+        <li>오늘 뺄 상품</li>
+        <li>15초 처리</li>
+        <li>필독 공지</li>
+        <li>인수인계</li>
+      </ul>
+    </section>
+  )
+}
+
+/** 첫 실행 소개: 로고 소개 + 기능 4장, 옆으로 넘기거나 버튼으로 이동 */
 export default function Welcome() {
   const navigate = useNavigate()
   const trackRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
-  const last = index === SLIDES.length - 1
+  const total = SLIDES.length + 1
+  const last = index === total - 1
+  const dark = index === 0
 
   const goTo = (i: number) => {
     const track = trackRef.current
@@ -109,10 +133,10 @@ export default function Welcome() {
   }
 
   return (
-    <main className="welcome">
+    <main className={`welcome${dark ? ' welcome-dark' : ''}`}>
       <div className="welcome-top">
-        <div className="brand">
-          <img src="/icon.svg" alt="" />
+        <div className="brand" style={{ visibility: dark ? 'hidden' : 'visible' }}>
+          <img src="/brand/logo.svg" alt="" />
           <span className="brand-name">스태프온리</span>
         </div>
         {!last && <button className="welcome-skip" onClick={() => finish('/login')}>건너뛰기</button>}
@@ -127,8 +151,9 @@ export default function Welcome() {
           setIndex(Math.round(t.scrollLeft / t.clientWidth))
         }}
       >
+        <IntroSlide />
         {SLIDES.map((s, i) => (
-          <section key={i} className="welcome-slide" aria-roledescription="slide" aria-label={`${i + 1} / ${SLIDES.length}`}>
+          <section key={i} className="welcome-slide" aria-roledescription="slide" aria-label={`${i + 2} / ${total}`}>
             <div className="welcome-art">{s.mock}</div>
             <h1 className="welcome-title">{s.title}</h1>
             <p className="welcome-desc">{s.desc}</p>
@@ -138,7 +163,7 @@ export default function Welcome() {
 
       <div className="welcome-bottom">
         <div className="welcome-dots" role="tablist" aria-label="소개 페이지">
-          {SLIDES.map((_, i) => (
+          {Array.from({ length: total }, (_, i) => (
             <button key={i} role="tab" aria-selected={i === index} aria-label={`${i + 1}번째 소개`}
               className={i === index ? 'on' : ''} onClick={() => goTo(i)} />
           ))}
@@ -150,7 +175,9 @@ export default function Welcome() {
             <GuestStart onBeforeStart={markIntroSeen} />
           </div>
         ) : (
-          <button className="btn btn-primary btn-block" onClick={() => goTo(index + 1)}>다음</button>
+          <button className={`btn btn-block ${dark ? 'btn-lime' : 'btn-primary'}`} onClick={() => goTo(index + 1)}>
+            {dark ? '어떤 앱인지 보기' : '다음'}
+          </button>
         )}
       </div>
     </main>

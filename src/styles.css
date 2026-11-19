@@ -749,3 +749,29 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .btn-guest { background: transparent; color: var(--color-text-sub); border: 1px dashed var(--color-border); font-size: var(--text-md); }
 .banner-guest { background: #eef2ff; color: #3730a3; font-size: var(--text-sm); }
 .guest-card { border: 1px solid #c7d2fe; background: linear-gradient(180deg, #eef2ff, var(--color-surface) 60%); }
+/* ── 소개 첫 장: 브랜드 (검정 + 라임) ─────────────── */
+:root { --brand-ink: #111111; --brand-lime: #c6ff3d; }
+.welcome { transition: background-color 0.35s ease, color 0.35s ease; }
+.welcome-dark { background: var(--brand-ink); color: #fff; }
+.welcome-dark .welcome-skip { color: rgba(255, 255, 255, 0.6); }
+.welcome-dark .welcome-dots button { background: rgba(255, 255, 255, 0.22); }
+.welcome-dark .welcome-dots button.on { background: var(--brand-lime); }
+.btn-lime { background: var(--brand-lime); color: var(--brand-ink); }
+.btn-lime:active { background: #b5ef29; }
+
+.welcome-intro { justify-content: center; align-items: center; text-align: center; gap: var(--space-2); }
+.intro-logo { width: 168px; height: 168px; margin-bottom: var(--space-2); }
+.intro-eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.32em; color: var(--brand-lime); }
+.intro-title { font-size: 40px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.intro-tagline { font-size: var(--text-xl); font-weight: 700; line-height: 1.4; margin-top: var(--space-2); }
+.intro-desc { font-size: var(--text-md); line-height: 1.65; color: rgba(255, 255, 255, 0.65); margin-top: var(--space-2); }
+.intro-points { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+.intro-points li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(198, 255, 61, 0.45);
+  color: var(--brand-lime);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) { .welcome { transition: none; } }
