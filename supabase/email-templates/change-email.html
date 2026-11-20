@@ -1,0 +1,10 @@
+<!-- Supabase → Authentication → Emails → Templates → "Change Email Address" 본문에 붙여넣어요. 제목: [스태프온리] 이메일 연결을 완료해 주세요 -->
+<!-- 게스트가 설정에서 "이메일로 연결"을 누르면 이 메일이 가요 -->
+<div style="max-width:480px;margin:0 auto;padding:32px 24px;font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111111">
+  <p style="font-size:13px;font-weight:700;letter-spacing:.08em;margin:0 0 24px">STAFF ONLY · 스태프온리</p>
+  <h1 style="font-size:22px;margin:0 0 12px">이메일 연결을 완료해 주세요</h1>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 24px">스태프온리 계정에 <strong>{{ .NewEmail }}</strong>을(를) 연결하려고 해요. 아래 버튼을 누른 뒤 로그인에 쓸 비밀번호를 정하면 끝나요.</p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change"
+     style="display:inline-block;background:#111111;color:#C6FF3D;font-size:16px;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:12px">이메일 연결하기</a>
+  <p style="font-size:13px;line-height:1.6;color:#666666;margin:24px 0 0">직접 요청하지 않았다면 이 메일은 무시해 주세요.</p>
+</div>

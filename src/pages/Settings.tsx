@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { WEEK_DAYS } from '../lib/days'
-import { linkProvider, supabase, toKoreanError, type OAuthProvider } from '../lib/supabase'
+import { emailRedirectTo, linkProvider, supabase, toKoreanError, type OAuthProvider } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
 
 const PROVIDER_LABEL: Record<string, string> = { email: '이메일', google: '구글', kakao: '카카오', guest: '게스트' }
@@ -184,7 +184,6 @@ function GuestUpgrade() {
   const { refreshProfile } = useAuth()
   const [mode, setMode] = useState<'buttons' | 'email'>('buttons')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
@@ -200,13 +199,12 @@ function GuestUpgrade() {
     e.preventDefault()
     setBusy(true)
     setError('')
-    const { data, error } = await supabase.auth.updateUser({ email: email.trim(), password })
+    // 게스트는 이메일 인증을 먼저 끝내야 비밀번호를 정할 수 있어요 (인증 링크 화면에서 정해요)
+    const { data, error } = await supabase.auth.updateUser({ email: email.trim() }, { emailRedirectTo: emailRedirectTo() })
     setBusy(false)
     if (error) return setError(toKoreanError(error.message))
     await refreshProfile()
-    setInfo(data.user?.is_anonymous
-      ? '인증 메일을 보냈어요. 메일의 링크를 누르면 연결이 끝나요.'
-      : '이메일 계정으로 연결했어요. 이제 이 이메일과 비밀번호로 로그인할 수 있어요.')
+    setInfo(`${data.user?.new_email ?? email.trim()}(으)로 인증 메일을 보냈어요. 메일의 버튼을 누른 뒤 로그인에 쓸 비밀번호를 정하면 연결이 끝나요.`)
   }
 
   return (
@@ -230,12 +228,7 @@ function GuestUpgrade() {
             <input className="input" type="email" inputMode="email" autoComplete="email" value={email}
               onChange={(e) => setEmail(e.target.value)} required />
           </label>
-          <label className="field">
-            <span className="label">비밀번호</span>
-            <input className="input" type="password" autoComplete="new-password" minLength={6} value={password}
-              onChange={(e) => setPassword(e.target.value)} required />
-            <span className="hint">6자 이상</span>
-          </label>
+          <p className="hint">이 주소로 인증 메일을 보내요. 메일의 버튼을 누르면 비밀번호를 정하는 화면이 열려요.</p>
           <div className="btn-row">
             <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setMode('buttons')}>뒤로</button>
             <button className="btn btn-primary" style={{ flex: 1 }} disabled={busy}>{busy ? '연결 중…' : '연결'}</button>

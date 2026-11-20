@@ -1,14 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import SocialLogin from '../components/SocialLogin'
-import { supabase, toKoreanError } from '../lib/supabase'
+import ResendEmail from '../components/ResendEmail'
+import { emailRedirectTo, supabase, toKoreanError } from '../lib/supabase'
 
 export default function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [info, setInfo] = useState('')
+  const [sentTo, setSentTo] = useState('')
   const [busy, setBusy] = useState(false)
 
   const onSubmit = async (e: FormEvent) => {
@@ -19,12 +20,39 @@ export default function Signup() {
       email: email.trim(),
       password,
       // DB 트리거가 이 값으로 profiles.display_name을 채워요
-      options: { data: { display_name: name.trim() } },
+      options: { data: { display_name: name.trim() }, emailRedirectTo: emailRedirectTo() },
     })
     setBusy(false)
     if (error) return setError(toKoreanError(error.message))
+    // 이메일 인증이 켜져 있으면 이미 가입된 이메일도 오류 없이 돌아와요 (identities가 비어 있음)
+    if (data.user && data.user.identities?.length === 0)
+      return setError('이미 가입된 이메일이에요. 로그인해 주세요. 인증을 안 끝냈다면 로그인 화면에서 인증 메일을 다시 받을 수 있어요.')
     // 이메일 인증이 켜져 있으면 세션 없이 돌아와요
-    if (!data.session) setInfo('인증 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인해 주세요.')
+    if (!data.session) setSentTo(email.trim())
+  }
+
+  if (sentTo) {
+    return (
+      <main className="auth">
+        <div className="brand">
+          <img src="/brand/logo.svg" alt="" />
+          <span className="brand-name">스태프온리</span>
+        </div>
+        <div>
+          <h1 className="page-title">메일함을 확인해 주세요</h1>
+          <p className="page-sub"><strong>{sentTo}</strong>(으)로 인증 메일을 보냈어요.</p>
+        </div>
+        <section className="card stack">
+          <p>메일의 <strong>이메일 인증하기</strong> 버튼을 누르면 가입이 끝나고 바로 시작할 수 있어요.</p>
+          <p className="hint">메일이 안 보이면 스팸함도 확인해 주세요. 링크는 1시간 동안 쓸 수 있어요.</p>
+        </section>
+        <ResendEmail email={sentTo} startCooldown />
+        <Link className="btn btn-primary btn-block btn-link" to="/login">로그인 화면으로</Link>
+        <button type="button" className="btn btn-ghost btn-block" onClick={() => { setSentTo(''); setPassword('') }}>
+          다른 이메일로 가입
+        </button>
+      </main>
+    )
   }
 
   return (
@@ -58,7 +86,6 @@ export default function Signup() {
           <span className="hint">6자 이상</span>
         </label>
         {error && <p className="alert alert-error" role="alert">{error}</p>}
-        {info && <p className="alert alert-info" role="status">{info}</p>}
         <button className="btn btn-primary btn-block" disabled={busy}>
           {busy ? '가입 중…' : '가입하기'}
         </button>

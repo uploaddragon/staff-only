@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import GuestStart from '../components/GuestStart'
+import ResendEmail from '../components/ResendEmail'
 import SocialLogin from '../components/SocialLogin'
 import { supabase, toKoreanError } from '../lib/supabase'
 
@@ -9,6 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [unconfirmed, setUnconfirmed] = useState(false)
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -16,6 +18,7 @@ export default function Login() {
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     setBusy(false)
+    setUnconfirmed(!!error && error.message.toLowerCase().includes('email not confirmed'))
     if (error) setError(toKoreanError(error.message))
     // 성공하면 AuthProvider가 세션을 받아 홈으로 이동해요
   }
@@ -48,6 +51,7 @@ export default function Login() {
         <button className="btn btn-primary btn-block" disabled={busy}>
           {busy ? '로그인 중…' : '로그인'}
         </button>
+        {unconfirmed && <ResendEmail email={email.trim()} />}
       </form>
 
       <p className="center muted">

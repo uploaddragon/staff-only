@@ -36,6 +36,14 @@ export function linkProvider(provider: OAuthProvider) {
   })
 }
 
+/** 인증 메일의 링크를 누르면 돌아올 주소 (메일 템플릿이 token_hash 방식이 아닐 때 쓰여요) */
+export const emailRedirectTo = () => `${window.location.origin}/`
+
+/** 가입 인증 메일을 다시 보내요 */
+export function resendSignupEmail(email: string) {
+  return supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: emailRedirectTo() } })
+}
+
 /** Supabase 오류를 사용자에게 보여줄 한국어 문장으로 바꿔요 */
 export function toKoreanError(message: string): string {
   // DB 함수가 직접 보낸 한국어 메시지는 그대로 보여줘요
@@ -53,6 +61,11 @@ export function toKoreanError(message: string): string {
     return '이 계정은 이미 다른 스태프온리 계정에 연결돼 있어요. 그 계정으로 로그인해 주세요.'
   if (m.includes('already been registered') || m.includes('email address already'))
     return '이미 가입된 이메일이에요. 다른 이메일을 쓰거나 그 계정으로 로그인해 주세요.'
+  if (m.includes('expired') || m.includes('otp') || m.includes('token has') || m.includes('link is invalid'))
+    return '인증 링크가 만료됐거나 이미 사용됐어요. 인증 메일을 다시 받아 주세요.'
+  if (m.includes('for security purposes')) return '조금 전에 메일을 보냈어요. 1분쯤 뒤에 다시 시도해 주세요.'
+  if (m.includes('error sending') || m.includes('sending confirmation'))
+    return '인증 메일을 보내지 못했어요. 잠시 후 다시 시도해 주세요.'
   if (m.includes('rate limit')) return '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.'
   if (m.includes('failed to fetch')) return '서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.'
   return `문제가 생겼어요: ${message}`
