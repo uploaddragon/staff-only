@@ -121,7 +121,7 @@ export default function Process() {
           <p className="alert alert-error" role="alert">
             유통기한이 {ddayLabel(old!, today).replace('D+', '')}일 지났어요. 어떻게 처리했나요?
           </p>
-          <div className="choice-row" role="radiogroup" aria-label="처리 방법">
+          <div className="action-row" role="radiogroup" aria-label="처리 방법">
             <ActionCard on={action === 'pulled'} onClick={() => choose('pulled')}
               title="빼뒀어요" desc="할인 스티커 붙이고 따로 뺌" />
             <ActionCard on={action === 'disposed'} onClick={() => choose('disposed')}
@@ -129,9 +129,9 @@ export default function Process() {
           </div>
         </>
       ) : (
-        <div className="choice-row" role="radiogroup" aria-label="처리 방법">
+        <div className="action-row" role="radiogroup" aria-label="처리 방법">
           <ActionCard on={action === 'pulled'} onClick={() => choose('pulled')}
-            title="빼두기 완료" desc="할인 스티커 붙이고 따로 뺌" />
+            title="빼두기 완료" desc="할인 스티커 붙여 뺐어요" />
           <ActionCard on={action === 'sold'} onClick={() => choose('sold')}
             title="판매 완료" desc="빼기 전에 다 팔렸어요" />
         </div>

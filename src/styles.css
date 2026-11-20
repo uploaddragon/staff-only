@@ -485,8 +485,7 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .expired-title { font-size: var(--text-lg); font-weight: 800; color: var(--color-danger); }
 .product-row.expired .product-name, .product-row.expired .product-date, .product-row.expired .dday { color: var(--color-danger); }
 .product-row.expired .zone-chip { background: var(--color-danger); color: #fff; }
-.choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
-.choice-row .check-card { padding: var(--space-4); gap: var(--space-3); }
+/* (처리 방법 카드는 아래 .action-row) */
 /* ── 5단계: 공지·점주 관리 ─────────────────────── */
 .notice-required { border: 2px solid var(--color-danger); }
 .notice-title { font-size: var(--text-xl); font-weight: 700; line-height: 1.35; }
@@ -823,3 +822,7 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .log-button:last-child { border-bottom: none; }
 .log-button:active { background: var(--color-bg); }
 .back-button { background: none; border: none; padding: 0; cursor: pointer; text-align: left; }
+/* 처리 방법 카드 두 개: 설명 길이가 달라도 같은 높이 */
+.action-row { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: var(--space-2); }
+.action-row .check-card { height: 100%; padding: var(--space-3) var(--space-4); gap: var(--space-3); }
+.action-row .check-box { width: 28px; height: 28px; font-size: 18px; }
