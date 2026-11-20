@@ -13,7 +13,7 @@ export type RecentLog = {
   old_expiry: string | null
   new_expiry: string | null
   out_of_stock: boolean
-  disposed: boolean
+  action: 'pulled' | 'sold' | 'disposed'
   processor: { display_name: string } | null
 }
 
@@ -30,7 +30,7 @@ export function useOwnerOverview(storeId: string | undefined) {
       supabase.from('products').select('category_id, earliest_expiry').eq('store_id', storeId),
       supabase
         .from('process_logs')
-        .select('id, product_name, category_name, zone_name, processed_at, old_expiry, new_expiry, out_of_stock, disposed, processor:profiles(display_name)')
+        .select('id, product_name, category_name, zone_name, processed_at, old_expiry, new_expiry, out_of_stock, action, processor:profiles(display_name)')
         .eq('store_id', storeId)
         .order('processed_at', { ascending: false })
         .limit(5),

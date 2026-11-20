@@ -88,6 +88,7 @@ export default function ProductEdit() {
         {error && <p className="alert alert-error" role="alert">{error}</p>}
         <button className="btn btn-primary btn-block" disabled={!valid || busy}>{busy ? '저장 중…' : '저장'}</button>
       </form>
+      <Link className="btn btn-ghost btn-block btn-link" to={`/history?product=${product.id}`}>이 상품 처리 히스토리</Link>
       <button className="btn btn-danger btn-block" onClick={remove}>상품 삭제</button>
     </main>
   )

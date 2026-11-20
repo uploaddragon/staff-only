@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ExpiryInput from '../components/ExpiryInput'
+import Icon from '../components/Icon'
 import { ddayLabel, formatLong, formatShort, isDueToday, parseYYMMDD, todaySeoul, warnDateOf } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { CATEGORY_SELECT, PRODUCT_SELECT, type Category, type Product } from '../lib/types'
@@ -8,11 +9,14 @@ import { useStore } from '../store/StoreProvider'
 import type { ProcessedState } from './Home'
 import { Skeleton } from '../components/States'
 
-/** 무엇을 했나: 빼둠(할인 스티커) / 폐기 (폐기는 유통기한이 지난 상품에서만 골라요) */
-type Action = 'pulled' | 'disposed'
+/**
+ * 무엇을 했나: 빼둠(할인 스티커) / 판매 완료(빼기 전에 다 팔림) / 폐기
+ * 판매 완료는 기한 전 상품에서만, 폐기는 기한이 지난 상품에서만 골라요.
+ */
+type Action = 'pulled' | 'sold' | 'disposed'
 
 /**
- * ③ 처리: 빼두기 완료 체크 → 남은 것 중 다음으로 빠른 날짜(또는 재고 없음) → 처리 완료
+ * ③ 처리: 빼두기 완료 또는 판매 완료 → 남은 것 중 다음으로 빠른 날짜(또는 재고 없음) → 처리 완료
  * 유통기한이 이미 지났으면 "빼뒀어요 / 폐기했어요" 중에 골라요.
  * 한 화면에서 15초 안에 끝나는 게 목표예요.
  */
@@ -77,7 +81,7 @@ export default function Process() {
       p_product_id: product.id,
       p_new_expiry: outOfStock ? null : iso,
       p_out_of_stock: outOfStock,
-      p_disposed: action === 'disposed',
+      p_action: action,
     })
     setBusy(false)
     if (error) return setError(toKoreanError(error.message))
@@ -90,7 +94,10 @@ export default function Process() {
       <Link className="back" to="/">← 홈</Link>
 
       <section className="card stack">
-        <p className="muted">{category.name} · {zoneName} 구역</p>
+        <div className="row">
+          <p className="muted">{category.name} · {zoneName} 구역</p>
+          <Link className="link-sub" to={`/history?product=${product.id}`}><Icon name="history" size={16} /> 히스토리</Link>
+        </div>
         <h1 className="page-title">{product.name}</h1>
         {old ? (
           <div className="record">
@@ -122,8 +129,12 @@ export default function Process() {
           </div>
         </>
       ) : (
-        <ActionCard on={action === 'pulled'} onClick={() => choose('pulled')}
-          title="빼두기 완료" desc="할인 스티커를 붙이고 따로 빼 뒀어요" />
+        <div className="choice-row" role="radiogroup" aria-label="처리 방법">
+          <ActionCard on={action === 'pulled'} onClick={() => choose('pulled')}
+            title="빼두기 완료" desc="할인 스티커 붙이고 따로 뺌" />
+          <ActionCard on={action === 'sold'} onClick={() => choose('sold')}
+            title="판매 완료" desc="빼기 전에 다 팔렸어요" />
+        </div>
       )}
 
       <section className="card form">
@@ -146,7 +157,7 @@ export default function Process() {
       {error && <p className="alert alert-error" role="alert">{error}</p>}
 
       <button className="btn btn-primary btn-block sticky-action" disabled={!ready} onClick={submit}>
-        {busy ? '처리 중…' : !action ? (expired ? '먼저 처리 방법을 골라 주세요' : '먼저 빼두기 완료를 체크해 주세요') : '처리 완료'}
+        {busy ? '처리 중…' : !action ? '먼저 처리 방법을 골라 주세요' : '처리 완료'}
       </button>
       {iso && !outOfStock && action && <p className="hint center">{formatLong(iso)}로 바꿔요</p>}
     </main>

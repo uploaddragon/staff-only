@@ -168,7 +168,11 @@ export default function Manage() {
           overview.logs.map((l) => (
             <div key={l.id} className="log-row">
               <div className="row">
-                <span className="list-name">{l.product_name} {l.disposed && <span className="badge badge-danger">폐기</span>}</span>
+                <span className="list-name">
+                  {l.product_name}{' '}
+                  {l.action === 'disposed' && <span className="badge badge-danger">폐기</span>}
+                  {l.action === 'sold' && <span className="badge">판매</span>}
+                </span>
                 <span className="list-meta">{formatDateTime(l.processed_at)}</span>
               </div>
               <p className="list-meta">
