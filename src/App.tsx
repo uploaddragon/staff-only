@@ -51,7 +51,7 @@ function GuestOnly({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-/** 처음 온 사람은 로그인 전에 서비스 소개부터 (화면을 그릴 때마다 다시 확인해요) */
+/** 로그인(게스트 포함) 안 된 채로 앱을 열면 항상 서비스 소개부터 (화면을 그릴 때마다 다시 확인해요) */
 function IntroFirst({ children }: { children: ReactNode }) {
   if (!hasSeenIntro()) return <Navigate to="/welcome" replace />
   return <>{children}</>
@@ -66,7 +66,7 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/welcome" element={<GuestOnly><Welcome /></GuestOnly>} />
         <Route path="/login" element={<GuestOnly><IntroFirst><Login /></IntroFirst></GuestOnly>} />
-        <Route path="/signup" element={<GuestOnly><Signup /></GuestOnly>} />
+        <Route path="/signup" element={<GuestOnly><IntroFirst><Signup /></IntroFirst></GuestOnly>} />
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/shelf" element={<Shelf />} />

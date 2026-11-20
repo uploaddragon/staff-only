@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { resetIntro } from '../lib/intro'
 
 /** user_type: 가입 후 고른 점주/알바 (첫 화면 안내용). 아직 안 골랐으면 null */
 export type Profile = { id: string; display_name: string; user_type: 'owner' | 'staff' | null }
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshProfile])
 
   const signOut = async () => {
+    resetIntro()
     await supabase.auth.signOut()
   }
 
