@@ -5,6 +5,8 @@ import { formatShort, parseYYMMDD } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { PRODUCT_SELECT, type Product } from '../lib/types'
 import { useCategory } from '../lib/useCategory'
+import { addZone, nextZoneName } from '../lib/zones'
+import { useStore } from '../store/StoreProvider'
 import { PageLoading } from '../components/States'
 
 /** ⑤ 첫 등록: 구역을 골라 "상품명 + 가장 빠른 유통기한"을 연속으로 입력해요 */
@@ -12,6 +14,7 @@ export default function Register() {
   const { categoryId } = useParams()
   const [params, setParams] = useSearchParams()
   const { category, zones, products, loaded, canEdit, setProducts, setZones } = useCategory(categoryId)
+  const { isOwner } = useStore()
   const [name, setName] = useState('')
   const [date, setDate] = useState('')
   const [error, setError] = useState('')
@@ -109,6 +112,17 @@ export default function Register() {
               </button>
             )
           })}
+          {isOwner && (
+            <button type="button" className="segmented-add" aria-label={`${nextZoneName(zones)} 구역 추가`}
+              onClick={async () => {
+                const { zone: added, error } = await addZone(category.store_id, category.id, zones)
+                if (error || !added) return setError(error ? toKoreanError(error.message) : '구역을 추가하지 못했어요.')
+                setZones((list) => [...list, added])
+                selectZone(added.id)
+              }}>
+              + {nextZoneName(zones)}
+            </button>
+          )}
         </div>
       </section>
 

@@ -798,3 +798,20 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 
 @media (prefers-reduced-motion: reduce) { .tab .tab-icon { transition: none; } }
 .tab .tab-dot { top: 0; right: 10px; }
+
+/* 구역 탭 끝의 "+ E" (점주: 구역 바로 추가) */
+.segmented .segmented-add {
+  flex: 0 0 auto;
+  min-width: 56px;
+  height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  border: 1px dashed #b9c0ca;
+  background: transparent;
+  color: var(--color-text-sub);
+  font-size: var(--text-md);
+  font-weight: 700;
+  cursor: pointer;
+}
+.segmented .segmented-add:active { background: var(--color-primary-soft); }
+.segmented .segmented-add:disabled { opacity: 0.5; }

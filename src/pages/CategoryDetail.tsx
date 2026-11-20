@@ -4,6 +4,7 @@ import { ddayLabel, formatShort, isImminent, todaySeoul } from '../lib/dates'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { sortProducts } from '../lib/types'
 import { useCategory } from '../lib/useCategory'
+import { addZone, nextZoneName } from '../lib/zones'
 import { useStore } from '../store/StoreProvider'
 import { PageLoading } from '../components/States'
 
@@ -12,8 +13,10 @@ export default function CategoryDetail() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
   const { isOwner } = useStore()
-  const { category, zones, products, error, loaded, canEdit, reload } = useCategory(categoryId)
+  const { category, zones, products, error, loaded, canEdit, reload, setZones } = useCategory(categoryId)
   const [zoneFilter, setZoneFilter] = useState<string>('all')
+  const [zoneError, setZoneError] = useState('')
+  const [addingZone, setAddingZone] = useState(false)
 
   if (!loaded) return <PageLoading />
   if (!category) return <main className="page"><p className="alert alert-error">{error}</p></main>
@@ -25,6 +28,17 @@ export default function CategoryDetail() {
   const zonesDone = zones.filter((z) => z.setup_done).length
   const setupIncomplete = zones.length > 0 && zonesDone < zones.length
   const registerZone = zoneFilter === 'all' ? '' : `?zone=${zoneFilter}`
+
+  // 점주: 구역 탭 끝의 + 로 다음 알파벳 구역을 바로 추가하고 그 구역을 보여줘요
+  const onAddZone = async () => {
+    setAddingZone(true)
+    setZoneError('')
+    const { zone, error } = await addZone(category.store_id, category.id, zones)
+    setAddingZone(false)
+    if (error || !zone) return setZoneError(error ? toKoreanError(error.message) : '구역을 추가하지 못했어요.')
+    setZones((list) => [...list, zone])
+    setZoneFilter(zone.id)
+  }
 
   return (
     <main className="page">
@@ -56,7 +70,14 @@ export default function CategoryDetail() {
           <button key={z.id} role="tab" aria-selected={zoneFilter === z.id} className={zoneFilter === z.id ? 'on' : ''}
             onClick={() => setZoneFilter(z.id)}>{z.name}</button>
         ))}
+        {isOwner && (
+          <button type="button" className="segmented-add" onClick={onAddZone} disabled={addingZone}
+            aria-label={`${nextZoneName(zones)} 구역 추가`}>
+            + {nextZoneName(zones)}
+          </button>
+        )}
       </div>
+      {zoneError && <p className="alert alert-error" role="alert">{zoneError}</p>}
 
       {imminentCount > 0 && zoneFilter === 'all' && (
         <p className="alert alert-error">임박 상품 {imminentCount}개 · 할인 스티커를 붙이고 빼 주세요</p>

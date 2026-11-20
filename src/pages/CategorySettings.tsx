@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { fetchApprovedMembers, type MemberOption } from '../lib/members'
 import { supabase, toKoreanError } from '../lib/supabase'
 import { CATEGORY_SELECT, ZONE_SELECT, type Category, type Zone } from '../lib/types'
+import { addZone, nextZoneName } from '../lib/zones'
 import { useStore } from '../store/StoreProvider'
 import { PageLoading, Skeleton } from '../components/States'
 
@@ -72,15 +73,11 @@ export default function CategorySettings() {
   }
 
   // 안 쓰는 다음 알파벳으로 구역을 하나 더해요 (A~D가 있으면 E)
-  const nextZoneName = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))
-    .find((letter) => !zones.some((z) => z.name === letter)) ?? `구역${zones.length + 1}`
+  const nextName = nextZoneName(zones)
 
-  const addZone = async () => {
-    const { error } = await supabase.from('zones').insert({
-      store_id: active.store_id, category_id: category.id, name: nextZoneName,
-      sort_order: Math.max(-1, ...zones.map((z) => z.sort_order)) + 1,
-    })
-    done(`${nextZoneName} 구역을 추가했어요`, error)
+  const onAddZone = async () => {
+    const { name, error } = await addZone(active.store_id, category.id, zones)
+    done(`${name} 구역을 추가했어요`, error)
   }
 
   const renameZone = async (zone: Zone) => {
@@ -159,8 +156,8 @@ export default function CategorySettings() {
             </div>
           ))}
         </div>
-        <button className="btn btn-ghost btn-block" style={{ marginTop: 12 }} onClick={addZone}>
-          + 구역 추가 ({nextZoneName})
+        <button className="btn btn-ghost btn-block" style={{ marginTop: 12 }} onClick={onAddZone}>
+          + 구역 추가 ({nextName})
         </button>
       </section>
 
