@@ -24,6 +24,7 @@ import RoleSetup from './pages/RoleSetup'
 import Privacy from './pages/Privacy'
 import Welcome from './pages/Welcome'
 import AuthConfirm from './pages/AuthConfirm'
+import Demo from './pages/Demo'
 import { hasSeenIntro } from './lib/intro'
 import NoticeDetail from './pages/NoticeDetail'
 import NoticeEdit from './pages/NoticeEdit'
@@ -66,6 +67,7 @@ export default function App() {
       <Routes>
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/auth/confirm" element={<AuthConfirm />} />
+        <Route path="/demo" element={<Demo />} />
         <Route path="/welcome" element={<GuestOnly><Welcome /></GuestOnly>} />
         <Route path="/login" element={<GuestOnly><IntroFirst><Login /></IntroFirst></GuestOnly>} />
         <Route path="/signup" element={<GuestOnly><IntroFirst><Signup /></IntroFirst></GuestOnly>} />

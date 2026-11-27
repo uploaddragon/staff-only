@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { WEEK_DAYS } from '../lib/days'
-import { resetTour } from '../lib/tour'
 import { emailRedirectTo, linkProvider, supabase, toKoreanError, type OAuthProvider } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
 
@@ -19,12 +18,10 @@ export default function Settings() {
   const justLinked = wasGuest && !isGuest
   const provider = isGuest ? 'guest' : String(session?.user.app_metadata.provider ?? 'email')
 
+  // 체험 매장에서 지금 매장의 역할(매장이 없으면 가입 때 고른 쪽)에 맞는 안내를 다시 봐요
   const replayTour = () => {
-    const userId = session?.user.id
-    if (!userId) return
-    if (active) resetTour(userId, isOwner ? 'home-owner' : 'home-staff')
-    else resetTour(userId, profile?.user_type === 'owner' ? 'start-owner' : 'start-staff')
-    navigate('/')
+    const role = active ? (isOwner ? 'owner' : 'staff') : profile?.user_type === 'owner' ? 'owner' : 'staff'
+    navigate(`/demo?from=settings&role=${role}`)
   }
 
   // 게스트가 로그아웃하면 같은 계정으로 다시 들어올 방법이 없어서 한 번 더 물어봐요
@@ -90,7 +87,7 @@ export default function Settings() {
 
       <button className="btn btn-ghost btn-block" onClick={onSignOut}>로그아웃</button>
       <p className="center hint">
-        {/* 지금 매장에서의 역할에 맞는 화면 안내를 홈에서 다시 보여줘요 */}
+        {/* 체험 매장에서 사용법을 다시 봐요 */}
         <button type="button" className="muted link-button" onClick={replayTour}>화면 안내 다시 보기</button>
         {' · '}
         <Link className="muted" to="/privacy">개인정보처리방침</Link>

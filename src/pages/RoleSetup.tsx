@@ -30,8 +30,8 @@ export default function RoleSetup() {
       setBusy(false)
       return setError(toKoreanError(error.message))
     }
-    // 홈에서 고른 역할에 맞는 화면 안내(버튼 강조 설명)가 시작돼요
-    navigate('/', { replace: true })
+    // 체험 매장에서 고른 역할에 맞게 주요 버튼을 하나씩 설명하고, 끝나면 매장 만들기·입장으로 가요
+    navigate(`/demo?role=${role}`, { replace: true })
     await refreshProfile()
   }
 
@@ -65,7 +65,7 @@ export default function RoleSetup() {
               </span>
             </button>
           ))}
-          <span className="hint">고르면 화면의 주요 버튼을 하나씩 짚어 설명해 드려요. 실제 역할은 매장마다 따로라서, 다른 매장에서는 다르게 일할 수도 있어요.</span>
+          <span className="hint">고르면 체험 매장에서 주요 기능을 하나씩 보여드려요. 실제 역할은 매장마다 따로라서, 다른 매장에서는 다르게 일할 수도 있어요.</span>
         </div>
 
         {error && <p className="alert alert-error" role="alert">{error}</p>}

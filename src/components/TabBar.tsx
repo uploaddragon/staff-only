@@ -15,7 +15,7 @@ const icons = {
   ),
 }
 
-const tabs = [
+export const tabs = [
   { to: '/', label: '홈', icon: icons.home },
   { to: '/shelf', label: '매대', icon: icons.shelf },
   { to: '/notices', label: '공지', icon: icons.notice },
@@ -41,7 +41,6 @@ export default function TabBar() {
           key={t.to}
           to={t.to}
           end={t.to === '/'}
-          data-tour={`tab-${t.to === '/' ? 'home' : t.to.slice(1)}`}
           className={({ isActive }) => `tab${isActive ? ' active' : ''}`}
         >
           <span className="tab-icon">

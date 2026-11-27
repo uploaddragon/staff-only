@@ -4,8 +4,6 @@ import { useAuth } from '../auth/AuthProvider'
 import Icon from '../components/Icon'
 import { EmptyState, SectionHeader, Skeleton } from '../components/States'
 import StoreSwitcher from '../components/StoreSwitcher'
-import Tour, { type TourStep } from '../components/Tour'
-import { useTour } from '../lib/tour'
 import { ddayLabel, formatShort, isImminent, nextWorkDay, todaySeoul, weekdayOf } from '../lib/dates'
 import { formatDays } from '../lib/days'
 import { supabase, toKoreanError } from '../lib/supabase'
@@ -17,32 +15,6 @@ import { useStore, type Membership } from '../store/StoreProvider'
 export type ProcessedState = { processed?: { logId: string; name: string } }
 
 const WEEK = '일월화수목금토'
-
-/* ── 화면 안내 (처음 한 번, 설정에서 다시 보기) ── */
-const START_STAFF: TourStep[] = [
-  { target: 'join', title: '초대코드로 매장에 들어가요', desc: '점주에게 받은 6자리 코드를 넣고 입장을 요청하세요. 점주가 승인하면 바로 함께 써요.' },
-  { target: 'tab-settings', title: '설정', desc: '이름을 바꾸거나, 매장에 들어간 뒤 근무 요일을 정할 수 있어요.' },
-]
-const START_OWNER: TourStep[] = [
-  { target: 'create', title: '먼저 매장을 만들어요', desc: '매장을 만들면 직원에게 알려줄 6자리 초대코드가 생겨요.' },
-  { target: 'join', title: '다른 매장에서도 일한다면', desc: '다른 매장의 초대코드로도 들어갈 수 있어요. 매장마다 역할은 따로예요.' },
-]
-const HOME_STAFF: TourStep[] = [
-  { target: 'summary', title: '오늘 할 일 한눈에', desc: '오늘 뺄 상품, 기간 지난 상품, 아직 확인 안 한 필독 공지 수예요. 동그라미는 오늘 처리한 만큼 채워져요.' },
-  { target: 'today', title: '오늘 뺄 상품', desc: '내가 맡은 매대에서 다음 출근 전에 임박하는 상품이에요. 누르고 "빼두기 완료"나 "판매 완료"를 고른 뒤, 남은 것 중 가장 빠른 날짜 6자리만 넣으면 끝나요.' },
-  { target: 'history', title: '처리 히스토리', desc: '누가 언제 어떤 상품을 처리했는지 남아요. 잘못 처리했으면 처리 직후 홈에 뜨는 "되돌리기"를 누르세요.' },
-  { target: 'tab-shelf', title: '매대', desc: '담당 매대의 상품과 날짜를 전부 보고, 새로 들어온 상품을 등록해요.' },
-  { target: 'tab-notices', title: '공지', desc: '필독 공지는 "확인했어요"를 누를 때까지 홈 위쪽에 남아요.' },
-  { target: 'tab-settings', title: '근무 요일', desc: '설정에서 근무 요일을 정하면, 쉬는 날 임박하는 상품도 그 전 출근일에 미리 보여줘요.' },
-]
-const HOME_OWNER: TourStep[] = [
-  { target: 'store', title: '매장 바꾸기', desc: '매장이 여러 개면 여기서 바꿔요.' },
-  { target: 'summary', title: '오늘 현황', desc: '모든 매대의 오늘 뺄 상품, 기간 지난 상품, 직원 입장 요청 수예요.' },
-  { target: 'today', title: '오늘 뺄 상품', desc: '누르면 바로 처리할 수 있어요. 누가 처리했는지는 히스토리에 남아요.' },
-  { target: 'tab-shelf', title: '매대 만들기 · 상품 등록', desc: '"봉지라면"처럼 매대를 만들고 A~D 구역으로 나눠요. 매대마다 담당 직원과 임박 기준일을 정해요.' },
-  { target: 'tab-notices', title: '공지', desc: '필독으로 올리면 직원 중 누가 확인했는지 볼 수 있어요.' },
-  { target: 'manage', title: '매장 관리', desc: '초대코드, 입장 요청 승인, 매대별 임박 현황, 직원 관리를 여기서 해요.' },
-]
 
 /** "11월 4일 (수)" (서울 기준) */
 function todayLabel() {
@@ -101,7 +73,6 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
   const next = isOwner ? null : nextWorkDay(today, store.work_days)
   const isWorkDay = !isOwner && store.work_days.includes(weekdayOf(today))
   const remaining = items.length + expired.length
-  const tour = useTour(isOwner ? 'home-owner' : 'home-staff', loaded)
 
   // 점주에게는 입장 요청이 있으면 배너로 알려줘요
   useEffect(() => {
@@ -165,9 +136,9 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
           </p>
         </div>
         <h1 className="hero-title">{greeting}</h1>
-        <div data-tour="store"><StoreSwitcher variant="hero" /></div>
+        <StoreSwitcher variant="hero" />
 
-        <div className="hero-summary" data-tour="summary">
+        <div className="hero-summary">
           <ProgressRing done={processedToday} total={processedToday + remaining} loaded={loaded} />
           <div className="hero-stats">
             <Stat label="오늘 뺄 상품" value={loaded ? items.length : '–'} />
@@ -231,9 +202,9 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
           )}
 
           {/* ── 오늘 뺄 상품 ── */}
-          <section className="home-section" data-tour="today">
+          <section className="home-section">
             <SectionHeader icon="box" title={<>오늘 뺄 상품 <span className="count">{items.length}</span></>}
-              right={<Link className="link-sub" to="/history" data-tour="history"><Icon name="history" size={16} /> 히스토리</Link>} />
+              right={<Link className="link-sub" to="/history"><Icon name="history" size={16} /> 히스토리</Link>} />
             {items.length > 0 ? (
               <div className="card card-list">
                 {items.map((item) => row(item, isImminent(item.product.earliest_expiry!, item.category.warn_days, today) ? 'imminent' : ''))}
@@ -293,7 +264,7 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
           )}
 
           {isOwner && (
-            <Link className="choice choice-row" to="/manage" data-tour="manage">
+            <Link className="choice choice-row" to="/manage">
               <span className="choice-icon"><Icon name="users" /></span>
               <span style={{ flex: 1 }}>
                 <span className="choice-title">매장 관리</span>
@@ -305,7 +276,6 @@ function StoreHome({ store, greeting }: { store: Membership; greeting: string })
           {!isOwner && <p className="hint center">이 매장 근무 {formatDays(store.work_days)}</p>}
         </>
       )}
-      {tour.show && <Tour steps={isOwner ? HOME_OWNER : HOME_STAFF} onClose={tour.finish} />}
     </main>
   )
 }
@@ -323,7 +293,7 @@ function GuestBanner() {
 }
 
 /** 오늘 처리 진행 링: 처리한 개수 / (처리한 개수 + 남은 개수) */
-function ProgressRing({ done, total, loaded }: { done: number; total: number; loaded: boolean }) {
+export function ProgressRing({ done, total, loaded }: { done: number; total: number; loaded: boolean }) {
   const r = 30
   const c = 2 * Math.PI * r
   const ratio = total === 0 ? 1 : done / total
@@ -343,7 +313,7 @@ function ProgressRing({ done, total, loaded }: { done: number; total: number; lo
   )
 }
 
-function Stat({ label, value, alert }: { label: string; value: number | string; alert?: boolean }) {
+export function Stat({ label, value, alert }: { label: string; value: number | string; alert?: boolean }) {
   return (
     <div className={`stat${alert ? ' stat-alert' : ''}`}>
       <span className="stat-value">{value}</span>
@@ -383,7 +353,6 @@ function Onboarding() {
   const pending = memberships.filter((m) => m.status === 'pending')
   const rejected = memberships.filter((m) => m.status === 'rejected')
   const isOwnerType = profile?.user_type === 'owner'
-  const tour = useTour(isOwnerType ? 'start-owner' : 'start-staff', !!profile && pending.length === 0)
 
   const cancel = async (storeId: string) => {
     const { error } = await supabase.rpc('cancel_join_request', { p_store_id: storeId })
@@ -392,7 +361,7 @@ function Onboarding() {
   }
 
   const join = (
-    <Link key="join" className="choice choice-row" to="/join" data-tour="join">
+    <Link key="join" className="choice choice-row" to="/join">
       <span className="choice-icon"><Icon name="store" /></span>
       <span style={{ flex: 1 }}>
         <span className="choice-title">초대코드로 입장하기</span>
@@ -402,7 +371,7 @@ function Onboarding() {
     </Link>
   )
   const create = (
-    <Link key="create" className="choice choice-row" to="/store/new" data-tour="create">
+    <Link key="create" className="choice choice-row" to="/store/new">
       <span className="choice-icon"><Icon name="sparkle" /></span>
       <span style={{ flex: 1 }}>
         <span className="choice-title">매장 만들기</span>
@@ -440,7 +409,6 @@ function Onboarding() {
           {isOwnerType ? [create, join] : [join, create]}
         </>
       )}
-      {tour.show && <Tour steps={isOwnerType ? START_OWNER : START_STAFF} onClose={tour.finish} />}
     </>
   )
 }

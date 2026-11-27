@@ -850,3 +850,10 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .link-button { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
 .tour-actions .btn-ghost, .tour-actions .btn-primary:only-child { margin-left: auto; }
 .tour-actions .tour-skip + .btn-ghost { margin-left: 0; }
+/* ── 체험 매장 ─────────────────── */
+.demo-banner {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  padding: 10px 16px; background: var(--color-accent); color: #111; font-size: var(--text-sm);
+}
+.demo-banner button { background: #111; color: #fff; border: 0; border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 700; cursor: pointer; }
