@@ -8,7 +8,7 @@ import { useStore } from '../store/StoreProvider'
 const PROVIDER_LABEL: Record<string, string> = { email: '이메일', google: '구글', kakao: '카카오', guest: '게스트' }
 
 export default function Settings() {
-  const { session, profile, refreshProfile, signOut } = useAuth()
+  const { session, profile, signOut } = useAuth()
   const { memberships, active, isOwner, refresh, selectStore } = useStore()
   const approved = memberships.filter((m) => m.status === 'approved')
   const isGuest = !!session?.user.is_anonymous
@@ -21,12 +21,6 @@ export default function Settings() {
   const onSignOut = () => {
     if (isGuest && !confirm('게스트로 로그아웃하면 지금 쓰던 매장·기록에 다시 들어올 수 없어요. 계정을 연결하지 않고 로그아웃할까요?')) return
     signOut()
-  }
-
-  const changeUserType = async (userType: 'owner' | 'staff') => {
-    if (!profile || profile.user_type === userType) return
-    await supabase.from('profiles').update({ user_type: userType }).eq('id', profile.id)
-    await refreshProfile()
   }
 
   return (
@@ -42,18 +36,6 @@ export default function Settings() {
           </p>
         </div>
         <NameEdit />
-        <div className="field">
-          <span className="label">가입 유형 (첫 화면 안내용)</span>
-          <div className="btn-row">
-            {(['staff', 'owner'] as const).map((t) => (
-              <button key={t} type="button" style={{ flex: 1 }}
-                className={`btn btn-sm ${profile?.user_type === t ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => changeUserType(t)}>
-                {t === 'owner' ? '점주' : '알바·직원'}
-              </button>
-            ))}
-          </div>
-        </div>
       </section>
 
       {isGuest && <GuestUpgrade />}
