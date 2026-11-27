@@ -41,6 +41,7 @@ export default function TabBar() {
           key={t.to}
           to={t.to}
           end={t.to === '/'}
+          data-tour={`tab-${t.to === '/' ? 'home' : t.to.slice(1)}`}
           className={({ isActive }) => `tab${isActive ? ' active' : ''}`}
         >
           <span className="tab-icon">

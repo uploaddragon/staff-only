@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { WEEK_DAYS } from '../lib/days'
+import { resetTour } from '../lib/tour'
 import { emailRedirectTo, linkProvider, supabase, toKoreanError, type OAuthProvider } from '../lib/supabase'
 import { useStore } from '../store/StoreProvider'
 
@@ -10,12 +11,21 @@ const PROVIDER_LABEL: Record<string, string> = { email: '이메일', google: '�
 export default function Settings() {
   const { session, profile, signOut } = useAuth()
   const { memberships, active, isOwner, refresh, selectStore } = useStore()
+  const navigate = useNavigate()
   const approved = memberships.filter((m) => m.status === 'approved')
   const isGuest = !!session?.user.is_anonymous
   // 게스트였다가 방금 연결한 경우 완료 안내를 남겨요 (연결 카드는 바로 사라지니까)
   const [wasGuest] = useState(isGuest)
   const justLinked = wasGuest && !isGuest
   const provider = isGuest ? 'guest' : String(session?.user.app_metadata.provider ?? 'email')
+
+  const replayTour = () => {
+    const userId = session?.user.id
+    if (!userId) return
+    if (active) resetTour(userId, isOwner ? 'home-owner' : 'home-staff')
+    else resetTour(userId, profile?.user_type === 'owner' ? 'start-owner' : 'start-staff')
+    navigate('/')
+  }
 
   // 게스트가 로그아웃하면 같은 계정으로 다시 들어올 방법이 없어서 한 번 더 물어봐요
   const onSignOut = () => {
@@ -79,7 +89,12 @@ export default function Settings() {
       </div>
 
       <button className="btn btn-ghost btn-block" onClick={onSignOut}>로그아웃</button>
-      <p className="center hint"><Link className="muted" to="/privacy">개인정보처리방침</Link></p>
+      <p className="center hint">
+        {/* 지금 매장에서의 역할에 맞는 화면 안내를 홈에서 다시 보여줘요 */}
+        <button type="button" className="muted link-button" onClick={replayTour}>화면 안내 다시 보기</button>
+        {' · '}
+        <Link className="muted" to="/privacy">개인정보처리방침</Link>
+      </p>
     </main>
   )
 }

@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
 import { supabase, toKoreanError } from '../lib/supabase'
-import { useStore } from '../store/StoreProvider'
 
 const ROLES = [
   { value: 'staff', title: '알바·직원이에요', desc: '점주에게 받은 초대코드로 매장에 들어가요' },
@@ -13,7 +12,6 @@ const ROLES = [
 export default function RoleSetup() {
   const navigate = useNavigate()
   const { profile, refreshProfile, signOut } = useAuth()
-  const { memberships } = useStore()
   const [name, setName] = useState(profile?.display_name ?? '')
   const [role, setRole] = useState<'owner' | 'staff' | null>(null)
   const [error, setError] = useState('')
@@ -32,10 +30,9 @@ export default function RoleSetup() {
       setBusy(false)
       return setError(toKoreanError(error.message))
     }
+    // 홈에서 고른 역할에 맞는 화면 안내(버튼 강조 설명)가 시작돼요
+    navigate('/', { replace: true })
     await refreshProfile()
-    // 아직 들어간 매장이 없으면 고른 역할에 맞는 첫 화면으로 보내요
-    const hasStore = memberships.some((m) => m.status !== 'rejected')
-    navigate(hasStore ? '/' : role === 'owner' ? '/store/new' : '/join', { replace: true })
   }
 
   return (
@@ -68,7 +65,7 @@ export default function RoleSetup() {
               </span>
             </button>
           ))}
-          <span className="hint">나중에 설정에서 바꿀 수 있어요. 매장마다 역할이 따로라서, 다른 매장에서는 다르게 일할 수도 있어요.</span>
+          <span className="hint">고르면 화면의 주요 버튼을 하나씩 짚어 설명해 드려요. 실제 역할은 매장마다 따로라서, 다른 매장에서는 다르게 일할 수도 있어요.</span>
         </div>
 
         {error && <p className="alert alert-error" role="alert">{error}</p>}
