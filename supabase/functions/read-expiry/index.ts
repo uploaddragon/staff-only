@@ -29,10 +29,13 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: '지원하지 않는 요청이에요.' }, 405)
 
   // 로그인한 사람인지 확인해요 (앱이 보낸 로그인 토큰으로)
-  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
+  // 공개 키: 예전 이름(ANON)이 없으면 앱이 같이 보낸 apikey 헤더(공개 키)를 써요
+  const publicKey = Deno.env.get('SUPABASE_ANON_KEY') ?? req.headers.get('apikey') ?? ''
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, publicKey, {
+    global: { headers: { Authorization: authHeader } },
   })
-  const { data: userData } = await supabase.auth.getUser()
+  const { data: userData } = await supabase.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''))
   if (!userData.user) return json({ error: '로그인이 필요해요.' }, 401)
 
   let image = ''
