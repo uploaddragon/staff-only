@@ -82,7 +82,7 @@ const SLIDES: Slide[] = [
         </div>
         <div className="card stack">
           <span className="badge" style={{ alignSelf: 'flex-start' }}>승인 대기 중</span>
-          <p className="list-name">GS더프레시 ○○점</p>
+          <p className="list-name">행복마트 역삼점</p>
           <p className="muted">점주가 승인하면 바로 들어갈 수 있어요.</p>
         </div>
       </Mock>
