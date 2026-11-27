@@ -47,7 +47,7 @@ export default function CreateStore() {
       <form className="form" onSubmit={onSubmit}>
         <label className="field">
           <span className="label">매장 이름</span>
-          <input className="input" placeholder="예: 행복마트 역삼점" maxLength={30} autoFocus
+          <input className="input" placeholder="예: ○○마트 ○○점" maxLength={30} autoFocus
             value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
         {error && <p className="alert alert-error" role="alert">{error}</p>}
